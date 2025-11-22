@@ -125,17 +125,25 @@ document.addEventListener("DOMContentLoaded", function() {
     const isLoggedIn = localStorage.getItem('eps_user_logged_in');
     const userName = localStorage.getItem('eps_user_name');
     
+    // Use new IDs for Homepage elements
     const navLogin = document.getElementById('nav-btn-login');
-    const navDash = document.getElementById('nav-btn-dashboard');
+    const navLoggedInGroup = document.getElementById('nav-group-logged-in');
+    
+    // Legacy support for other pages that might still use nav-btn-dashboard directly
+    const navDashOld = document.getElementById('nav-btn-dashboard');
 
     if(isLoggedIn === 'true') {
+        // Homepage: Hide login, show group (Dashboard + Logout)
         if(navLogin) navLogin.classList.add('hidden');
-        if(navDash) navDash.classList.remove('hidden');
+        if(navLoggedInGroup) navLoggedInGroup.classList.remove('hidden');
+        
+        // Legacy Pages: Hide login, show dashboard button
+        if(navDashOld) navDashOld.classList.remove('hidden');
         
         const welcomeMsg = document.getElementById('user-welcome');
         if(welcomeMsg && userName) welcomeMsg.innerText = userName;
     } else {
-        // Redirect to login if trying to access dashboard while logged out
+        // Not logged in - protect dashboard
         if(window.location.pathname.includes('dashboard.html')) {
              window.location.href = 'login.html';
         }
