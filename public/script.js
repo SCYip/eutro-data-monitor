@@ -1,6 +1,4 @@
-// ... existing code (Mobile Menu & Clock) ...
-
-// 1. Mobile Menu Toggle
+﻿// 1. Mobile Menu Toggle
 function toggleMobileMenu() {
     const mobileMenu = document.getElementById('mobile-menu');
     if (mobileMenu) {
@@ -19,8 +17,59 @@ function updateClock() {
 setInterval(updateClock, 1000);
 document.addEventListener("DOMContentLoaded", updateClock);
 
-// --- NEW LOGIN LOGIC CONNECTED TO BACKEND ---
+// 3. REAL SYSTEM STATUS CHECK
+async function checkSystemStatus() {
+    const statusDot = document.getElementById('status-dot');
+    const statusText = document.getElementById('status-text');
+    
+    // Only run this if we are on the dashboard (elements exist)
+    if(!statusDot || !statusText) return;
 
+    try {
+        // Fetch the last entry from your ThingSpeak Channel
+        const response = await fetch('https://api.thingspeak.com/channels/3175602/feeds/last.json');
+        const data = await response.json();
+        
+        // CASE: Channel is empty (New channel, no data yet)
+        if (data === "-1" || !data.created_at) {
+            statusDot.className = "w-2 h-2 bg-gray-500 rounded-full";
+            statusText.innerText = "No Data Yet";
+            statusText.className = "text-gray-400 font-bold";
+            return;
+        }
+
+        // CASE: Check time difference
+        const lastUpdate = new Date(data.created_at);
+        const now = new Date();
+        // Difference in minutes
+        const diffMinutes = (now - lastUpdate) / 1000 / 60;
+
+        if (diffMinutes < 2) {
+            // Online (Data received in last 2 mins)
+            statusDot.className = "w-2 h-2 bg-green-500 rounded-full animate-pulse";
+            statusText.innerText = "System Online";
+            statusText.className = "text-green-400 font-bold";
+        } else {
+            // Offline (No data for > 2 mins)
+            statusDot.className = "w-2 h-2 bg-red-500 rounded-full";
+            statusText.innerText = "System Offline";
+            statusText.className = "text-red-400 font-bold";
+        }
+    } catch (error) {
+        // Network error or API blocked
+        console.error("Status Check Failed:", error);
+        statusDot.className = "w-2 h-2 bg-yellow-500 rounded-full";
+        statusText.innerText = "Connection Error";
+        statusText.className = "text-yellow-500 font-bold";
+    }
+}
+
+// Run status check immediately and then every 15 seconds
+document.addEventListener("DOMContentLoaded", checkSystemStatus);
+setInterval(checkSystemStatus, 15000);
+
+
+// 4. LOGIN LOGIC
 async function handleLogin(event) {
     event.preventDefault();
     
@@ -29,18 +78,15 @@ async function handleLogin(event) {
     const errorMsg = document.getElementById('error-msg');
     const loginBtn = document.getElementById('login-btn');
 
-    // Simple validation
     if(!email || !password) {
         alert("Please enter both email and password.");
         return;
     }
 
-    // Loading State
     loginBtn.innerText = "Verifying...";
     loginBtn.disabled = true;
 
     try {
-        // Send data to our Node.js Backend
         const response = await fetch('/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -50,14 +96,10 @@ async function handleLogin(event) {
         const data = await response.json();
 
         if (data.success) {
-            // Save session
             localStorage.setItem('eps_user_logged_in', 'true');
             localStorage.setItem('eps_user_name', data.name);
-            
-            // Redirect
             window.location.href = 'dashboard.html';
         } else {
-            // Show error from server
             errorMsg.innerText = data.message;
             errorMsg.classList.remove('hidden');
             loginBtn.innerText = "Login";
@@ -72,19 +114,17 @@ async function handleLogin(event) {
     }
 }
 
-// Logout Logic
 function handleLogout() {
     localStorage.removeItem('eps_user_logged_in');
     localStorage.removeItem('eps_user_name');
-    window.location.href = 'index.html'; // Go back to home
+    window.location.href = 'index.html';
 }
 
-// Check Auth State on Load
+// 5. CHECK AUTH STATE (Runs on every page load)
 document.addEventListener("DOMContentLoaded", function() {
     const isLoggedIn = localStorage.getItem('eps_user_logged_in');
     const userName = localStorage.getItem('eps_user_name');
     
-    // Nav Buttons
     const navLogin = document.getElementById('nav-btn-login');
     const navDash = document.getElementById('nav-btn-dashboard');
 
@@ -92,11 +132,10 @@ document.addEventListener("DOMContentLoaded", function() {
         if(navLogin) navLogin.classList.add('hidden');
         if(navDash) navDash.classList.remove('hidden');
         
-        // If on dashboard, show user name
         const welcomeMsg = document.getElementById('user-welcome');
-        if(welcomeMsg && userName) welcomeMsg.innerText = `Welcome, ${userName}`;
+        if(welcomeMsg && userName) welcomeMsg.innerText = userName;
     } else {
-        // If NOT logged in, protect dashboard
+        // Redirect to login if trying to access dashboard while logged out
         if(window.location.pathname.includes('dashboard.html')) {
              window.location.href = 'login.html';
         }

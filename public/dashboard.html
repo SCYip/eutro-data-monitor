@@ -2,6 +2,163 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - EPS</title>
+    <title>Admin Dashboard - EPS</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans">
+
+    <!-- Admin Navigation -->
+    <nav class="bg-gray-900 text-white px-6 py-4 flex justify-between items-center shadow-lg sticky top-0 z-50">
+        <!-- Logo (Clickable to go Home) -->
+        <a href="index.html" class="flex items-center group">
+            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white mr-3 group-hover:bg-blue-500 transition">A</div>
+            <div class="font-bold text-lg tracking-wide group-hover:text-blue-300 transition">EPS Command Center</div>
+        </a>
+
+        <div class="flex items-center space-x-6">
+            <a href="index.html" class="text-gray-400 hover:text-white text-sm font-medium transition flex items-center mr-4">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Back to Website
+            </a>
+
+            <!-- REAL STATUS INDICATOR (Now has IDs) -->
+            <div class="hidden md:flex items-center space-x-2 text-sm">
+                <span id="status-dot" class="w-2 h-2 bg-gray-500 rounded-full"></span>
+                <span id="status-text" class="text-gray-300">Checking...</span>
+            </div>
+
+            <div class="h-6 w-px bg-gray-700"></div>
+            <div class="flex items-center space-x-3">
+                <span id="user-welcome" class="text-sm font-medium text-gray-300">Admin</span>
+                <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-full transition shadow-md">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto p-6 space-y-8">
+        
+        <!-- Section 1: Control Panel -->
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                System Controls
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition">
+                    <h3 class="font-bold text-gray-700 mb-2">Data Management</h3>
+                    <button onclick="simulateControl('Exporting CSV Data...')" class="w-full bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold py-2 px-4 rounded-lg border border-blue-200 transition flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Download CSV
+                    </button>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition">
+                    <h3 class="font-bold text-gray-700 mb-2">Sensor Calibration</h3>
+                    <button onclick="simulateControl('Calibrating pH Sensor... Please wait 10s.')" class="w-full bg-yellow-50 text-yellow-700 hover:bg-yellow-100 font-semibold py-2 px-4 rounded-lg border border-yellow-200 transition flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                        Calibrate pH
+                    </button>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition">
+                    <h3 class="font-bold text-gray-700 mb-2">System Power</h3>
+                    <button onclick="simulateControl('Sending Reboot Command to Arduino...')" class="w-full bg-red-50 text-red-700 hover:bg-red-100 font-semibold py-2 px-4 rounded-lg border border-red-200 transition flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        Remote Reboot
+                    </button>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition">
+                    <h3 class="font-bold text-gray-700 mb-2">Notifications</h3>
+                    <button onclick="toggleAlerts(this)" class="w-full bg-green-50 text-green-700 hover:bg-green-100 font-semibold py-2 px-4 rounded-lg border border-green-200 transition flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                        <span id="alert-text">Alerts: ON</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Live Monitor Grid -->
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                Live Analytics
+            </h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- Graph 1: pH -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-80">
+                    <div class="px-4 py-2 bg-gray-50 border-b border-gray-100 font-bold text-gray-600 text-sm flex justify-between">
+                        <span>pH Level</span>
+                        <span class="text-green-600">Live</span>
+                    </div>
+                    <iframe class="w-full h-full border-0" src="https://thingspeak.com/channels/3175602/charts/1?bgcolor=%23ffffff&color=%2315803d&dynamic=true&results=30&type=line&update=15"></iframe>
+                </div>
+
+                <!-- Graph 2: Temperature -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-80">
+                    <div class="px-4 py-2 bg-gray-50 border-b border-gray-100 font-bold text-gray-600 text-sm flex justify-between">
+                        <span>Temperature (°C)</span>
+                        <span class="text-green-600">Live</span>
+                    </div>
+                    <iframe class="w-full h-full border-0" src="https://thingspeak.com/channels/3175602/charts/2?bgcolor=%23ffffff&color=%23b91c1c&dynamic=true&results=30&type=line&update=15"></iframe>
+                </div>
+
+                <!-- Graph 3: Turbidity -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-80">
+                    <div class="px-4 py-2 bg-gray-50 border-b border-gray-100 font-bold text-gray-600 text-sm flex justify-between">
+                        <span>Turbidity (NTU)</span>
+                        <span class="text-green-600">Live</span>
+                    </div>
+                    <iframe class="w-full h-full border-0" src="https://thingspeak.com/channels/3175602/charts/3?bgcolor=%23ffffff&color=%23ca8a04&dynamic=true&results=30&type=line&update=15"></iframe>
+                </div>
+
+                <!-- System Logs -->
+                <div class="bg-gray-800 rounded-xl shadow-sm border border-gray-700 overflow-hidden h-80 flex flex-col">
+                    <div class="px-4 py-2 bg-gray-900 border-b border-gray-700 font-bold text-gray-300 text-sm flex justify-between">
+                        <span>System Console</span>
+                        <span class="text-xs font-mono text-gray-500">/var/log/syslog</span>
+                    </div>
+                    <div class="p-4 font-mono text-xs text-green-400 space-y-2 overflow-y-auto flex-grow" id="console-logs">
+                        <!-- Real logs will be added here by script.js -->
+                        <div>[SYSTEM] Dashboard initialized</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Dashboard specific UI logic (Controls/Alerts)
+        function simulateControl(message) {
+            alert("COMMAND SENT: " + message);
+            logToConsole("[CMD] " + message);
+        }
+
+        function toggleAlerts(btn) {
+            const span = document.getElementById('alert-text');
+            if(span.innerText.includes("ON")) {
+                span.innerText = "Alerts: OFF";
+                btn.classList.replace('bg-green-50', 'bg-gray-100');
+                btn.classList.replace('text-green-700', 'text-gray-500');
+                btn.classList.replace('border-green-200', 'border-gray-300');
+                logToConsole("[CONFIG] Email alerts disabled");
+            } else {
+                span.innerText = "Alerts: ON";
+                btn.classList.replace('bg-gray-100', 'bg-green-50');
+                btn.classList.replace('text-gray-500', 'text-green-700');
+                btn.classList.replace('border-gray-300', 'border-green-200');
+                logToConsole("[CONFIG] Email alerts enabled");
+            }
+        }
+
+        function logToConsole(msg) {
+            const consoleDiv = document.getElementById('console-logs');
+            const time = new Date().toLocaleTimeString();
+            const newLog = document.createElement('div');
+            newLog.innerText = `[${time}] ${msg}`;
+            consoleDiv.prepend(newLog);
+        }
+    </script>
+</body>
+</html>

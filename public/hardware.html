@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hardware - EPS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
+    <!-- Nav Bar (Hardware active) -->
+    <nav class="bg-white shadow-md border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex justify-between items-center h-20">
+                <a href="index.html" class="flex items-center">
+                    <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl mr-3 shadow-lg">EPS</div>
+                    <span class="text-xl font-bold text-gray-900 tracking-tight hidden md:block">Eutrophication Prevention System</span>
+                </a>
+                <div class="hidden md:flex space-x-6 items-center">
+                    <a href="index.html" class="nav-link py-2 font-medium text-gray-500 hover:text-blue-600">Home</a>
+                    <a href="about.html" class="nav-link py-2 font-medium text-gray-500 hover:text-blue-600">About</a>
+                    <a href="team.html" class="nav-link py-2 font-medium text-gray-500 hover:text-blue-600">Team</a>
+                    <a href="hardware.html" class="nav-link active py-2 font-medium text-blue-700 border-b-2 border-blue-700">Hardware</a>
+                    <a href="monitor.html" class="text-blue-600 font-bold flex items-center mr-4 hover:text-blue-800">
+                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></span>Live Monitor
+                    </a>
+                    <a href="login.html" id="nav-btn-login" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-full font-medium shadow-md">Login</a>
+                    <a href="dashboard.html" id="nav-btn-dashboard" class="hidden bg-gray-800 hover:bg-gray-900 text-white px-5 py-2 rounded-full font-medium shadow-md">Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto py-16 px-6 lg:px-8 flex-grow">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-extrabold text-gray-900">Hardware Setup</h2>
+            <p class="mt-4 text-lg text-gray-500">Core components powering the system.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div class="space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h4 class="text-lg font-bold text-gray-900">1. Arduino Uno R4 Wi-Fi</h4>
+                    <p class="text-gray-500 mt-2">Microcontroller with built-in Wi-Fi for data transmission.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h4 class="text-lg font-bold text-gray-900">2. Sensors</h4>
+                    <ul class="list-disc list-inside text-gray-500 mt-2 ml-2">
+                        <li>pH Sensor (Analog)</li>
+                        <li>DS18B20 Temperature Probe</li>
+                        <li>Turbidity Sensor</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
