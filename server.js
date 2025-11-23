@@ -17,8 +17,9 @@ const defaultData = {
         { email: "admin@eps.com", password: "admin123", name: "System Admin", role: "admin", organization: "EPS HQ" }
     ],
     devices: [
-        { id: "3175602", name: "Main System", owner: "admin@eps.com" }
-    ]
+        { id: "3175602", name: "Main System", owner: "admin@eps.com", sharedWith: [] }
+    ],
+    notifications: []
 };
 
 function readDB() {
@@ -121,36 +122,439 @@ app.get("/api/devices", (req, res) => {
     const requester = db.users.find(u => u.email === userEmail);
     
     if (requester && requester.role === 'admin') {
-        res.json(db.devices);
+        // Admins see all devices with ownership info
+        const devicesWithInfo = db.devices.map(device => {
+            const isOwner = device.owner === userEmail;
+            return {
+                ...device,
+                permission: isOwner ? 'owner' : 'admin-view',
+                isShared: !isOwner,
+                isAdminView: !isOwner // Flag to indicate admin is viewing but not owning
+            };
+        });
+        res.json(devicesWithInfo);
     } else {
-        const userDevices = db.devices.filter(d => d.owner === userEmail);
-        res.json(userDevices);
+        // Regular users see owned devices and shared devices
+        const ownedDevices = db.devices.filter(d => d.owner === userEmail);
+        const sharedDevices = db.devices.filter(d => {
+            if (d.owner === userEmail) return false; // Already in owned
+            if (!d.sharedWith || !Array.isArray(d.sharedWith)) return false;
+            return d.sharedWith.some(share => share.email === userEmail);
+        }).map(device => {
+            // Add permission info to shared devices
+            const shareInfo = device.sharedWith.find(share => share.email === userEmail);
+            return {
+                ...device,
+                permission: shareInfo ? shareInfo.permission : 'view',
+                isShared: true
+            };
+        });
+        
+        // Add ownership info to owned devices (include sharedWith for owners)
+        const ownedWithInfo = ownedDevices.map(device => ({
+            ...device,
+            permission: 'owner',
+            isShared: false,
+            sharedWith: device.sharedWith || [] // Include sharedWith for owners
+        }));
+        
+        res.json([...ownedWithInfo, ...sharedDevices]);
     }
 });
 
 app.post("/api/devices", (req, res) => {
     const { id, name, owner } = req.body;
-    const db = readDB();
-    const exists = db.devices.find(d => d.id === id && d.owner === owner);
-    if (exists) return res.status(400).json({ success: false, message: "Device already added." });
+    if (!id || !name || !owner) {
+        return res.status(400).json({ success: false, message: "Device ID, name, and owner are required." });
+    }
 
-    db.devices.push({ id, name, owner });
+    const db = readDB();
+    
+    // Check if device already exists with any owner
+    const existingDevice = db.devices.find(d => d.id === id);
+    if (existingDevice) {
+        if (existingDevice.owner === owner) {
+            return res.status(400).json({ success: false, message: "Device already added to your account." });
+        } else {
+            return res.status(403).json({ 
+                success: false, 
+                message: `This device is already owned by another account. Please contact the owner (${existingDevice.owner}) to request access.` 
+            });
+        }
+    }
+
+    // Initialize sharedWith array for new devices
+    db.devices.push({ id, name, owner, sharedWith: [] });
     writeDB(db); 
     res.json({ success: true, message: "Device added." });
 });
 
 app.delete("/api/devices", (req, res) => {
-    const { id, owner } = req.body;
-    const db = readDB();
-    const initialLength = db.devices.length;
-    db.devices = db.devices.filter(d => !(d.id === id && d.owner === owner));
-    
-    if (db.devices.length !== initialLength) {
-        writeDB(db); 
-        res.json({ success: true });
-    } else {
-        res.status(404).json({ success: false, message: "Device not found" });
+    const { id, requesterEmail } = req.body;
+    if (!id || !requesterEmail) {
+        return res.status(400).json({ success: false, message: "Device ID and requester email are required." });
     }
+
+    const db = readDB();
+    const device = db.devices.find(d => d.id === id);
+    
+    if (!device) {
+        return res.status(404).json({ success: false, message: "Device not found" });
+    }
+
+    const requester = db.users.find(u => u.email === requesterEmail);
+    
+    // Only owner or admin can delete the device entirely
+    if (device.owner === requesterEmail || (requester && requester.role === 'admin')) {
+        db.devices = db.devices.filter(d => d.id !== id);
+        writeDB(db);
+        res.json({ success: true, message: "Device deleted." });
+    } else {
+        // If user has shared access, remove them from sharedWith
+        if (device.sharedWith && Array.isArray(device.sharedWith)) {
+            const shareIndex = device.sharedWith.findIndex(share => share.email === requesterEmail);
+            if (shareIndex !== -1) {
+                device.sharedWith.splice(shareIndex, 1);
+                writeDB(db);
+                res.json({ success: true, message: "Device access removed." });
+            } else {
+                res.status(403).json({ success: false, message: "You don't have permission to remove this device." });
+            }
+        } else {
+            res.status(403).json({ success: false, message: "You don't have permission to remove this device." });
+        }
+    }
+});
+
+// Share device with another user
+app.post("/api/devices/share", (req, res) => {
+    const { deviceId, ownerEmail, shareWithEmail, permission } = req.body;
+    
+    if (!deviceId || !ownerEmail || !shareWithEmail || !permission) {
+        return res.status(400).json({ success: false, message: "All fields are required." });
+    }
+
+    if (permission !== 'view' && permission !== 'manage') {
+        return res.status(400).json({ success: false, message: "Permission must be 'view' or 'manage'." });
+    }
+
+    const db = readDB();
+    const device = db.devices.find(d => d.id === deviceId);
+    
+    if (!device) {
+        return res.status(404).json({ success: false, message: "Device not found." });
+    }
+
+    // Only owner can share
+    if (device.owner !== ownerEmail) {
+        return res.status(403).json({ success: false, message: "Only the device owner can share access." });
+    }
+
+    // Can't share with yourself
+    if (shareWithEmail === ownerEmail) {
+        return res.status(400).json({ success: false, message: "Cannot share device with yourself." });
+    }
+
+    // Check if user exists
+    const targetUser = db.users.find(u => u.email === shareWithEmail);
+    if (!targetUser) {
+        return res.status(404).json({ success: false, message: "User not found." });
+    }
+
+    // Initialize sharedWith if it doesn't exist
+    if (!device.sharedWith || !Array.isArray(device.sharedWith)) {
+        device.sharedWith = [];
+    }
+
+    // Check if already shared
+    const existingShare = device.sharedWith.find(share => share.email === shareWithEmail);
+    if (existingShare) {
+        // Update permission
+        existingShare.permission = permission;
+        writeDB(db);
+        return res.json({ success: true, message: `Permission updated to ${permission}.` });
+    }
+
+    // Add new share
+    device.sharedWith.push({ email: shareWithEmail, permission });
+    writeDB(db);
+    res.json({ success: true, message: `Device shared with ${targetUser.name} (${permission} access).` });
+});
+
+// Remove shared access
+app.delete("/api/devices/share", (req, res) => {
+    const { deviceId, ownerEmail, shareWithEmail } = req.body;
+    
+    if (!deviceId || !ownerEmail || !shareWithEmail) {
+        return res.status(400).json({ success: false, message: "All fields are required." });
+    }
+
+    const db = readDB();
+    const device = db.devices.find(d => d.id === deviceId);
+    
+    if (!device) {
+        return res.status(404).json({ success: false, message: "Device not found." });
+    }
+
+    // Only owner can remove shares
+    if (device.owner !== ownerEmail) {
+        return res.status(403).json({ success: false, message: "Only the device owner can remove shared access." });
+    }
+
+    if (!device.sharedWith || !Array.isArray(device.sharedWith)) {
+        return res.status(404).json({ success: false, message: "No shared access found." });
+    }
+
+    const shareIndex = device.sharedWith.findIndex(share => share.email === shareWithEmail);
+    if (shareIndex === -1) {
+        return res.status(404).json({ success: false, message: "Shared access not found." });
+    }
+
+    device.sharedWith.splice(shareIndex, 1);
+    writeDB(db);
+    res.json({ success: true, message: "Shared access removed." });
+});
+
+// Transfer device ownership
+app.post("/api/devices/transfer", (req, res) => {
+    const { deviceId, currentOwnerEmail, newOwnerEmail } = req.body;
+    
+    if (!deviceId || !currentOwnerEmail || !newOwnerEmail) {
+        return res.status(400).json({ success: false, message: "All fields are required." });
+    }
+
+    const db = readDB();
+    const device = db.devices.find(d => d.id === deviceId);
+    
+    if (!device) {
+        return res.status(404).json({ success: false, message: "Device not found." });
+    }
+
+    // Only current owner can transfer
+    if (device.owner !== currentOwnerEmail) {
+        return res.status(403).json({ success: false, message: "Only the device owner can transfer ownership." });
+    }
+
+    // Can't transfer to yourself
+    if (newOwnerEmail === currentOwnerEmail) {
+        return res.status(400).json({ success: false, message: "Cannot transfer device to yourself." });
+    }
+
+    // Check if new owner exists
+    const newOwner = db.users.find(u => u.email === newOwnerEmail);
+    if (!newOwner) {
+        return res.status(404).json({ success: false, message: "User not found." });
+    }
+
+    // Initialize sharedWith if it doesn't exist
+    if (!device.sharedWith || !Array.isArray(device.sharedWith)) {
+        device.sharedWith = [];
+    }
+
+    // Remove old owner from sharedWith if they're there
+    device.sharedWith = device.sharedWith.filter(share => share.email !== currentOwnerEmail);
+
+    // Add old owner to sharedWith with view permission (they become a viewer)
+    device.sharedWith.push({ email: currentOwnerEmail, permission: 'view' });
+
+    // Transfer ownership
+    device.owner = newOwnerEmail;
+
+    // Remove new owner from sharedWith if they were already shared
+    device.sharedWith = device.sharedWith.filter(share => share.email !== newOwnerEmail);
+
+    writeDB(db);
+    res.json({ success: true, message: `Device ownership transferred to ${newOwner.name}.` });
+});
+
+// Get all users for sharing (excluding current user)
+app.get("/api/users", (req, res) => {
+    const currentEmail = req.query.exclude;
+    const db = readDB();
+    
+    let users = db.users.map(u => ({
+        email: u.email,
+        name: u.name,
+        organization: u.organization || ""
+    }));
+
+    if (currentEmail) {
+        users = users.filter(u => u.email !== currentEmail);
+    }
+
+    res.json(users);
+});
+
+// --- NOTIFICATION ROUTES ---
+
+// Get notifications for a user
+app.get("/api/notifications", (req, res) => {
+    try {
+        const userEmail = req.query.email;
+        if (!userEmail) return res.status(400).json({ error: "Email required" });
+
+        const db = readDB();
+        if (!db.notifications || !Array.isArray(db.notifications)) {
+            db.notifications = [];
+            writeDB(db);
+        }
+        
+        const userNotifications = db.notifications
+            .filter(n => n && n.toEmail === userEmail && n.status === 'pending')
+            .sort((a, b) => {
+                const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+                const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+                return dateB - dateA;
+            });
+        
+        res.json(userNotifications);
+    } catch(error) {
+        console.error('Error getting notifications:', error);
+        res.status(500).json({ error: "Server error loading notifications" });
+    }
+});
+
+// Create notification (for sharing/transfer requests)
+app.post("/api/notifications", (req, res) => {
+    const { type, fromEmail, toEmail, deviceId, deviceName, permission } = req.body;
+    
+    if (!type || !fromEmail || !toEmail || !deviceId) {
+        return res.status(400).json({ success: false, message: "Missing required fields." });
+    }
+
+    const db = readDB();
+    if (!db.notifications) db.notifications = [];
+
+    // Check if user exists
+    const targetUser = db.users.find(u => u.email === toEmail);
+    if (!targetUser) {
+        return res.status(404).json({ success: false, message: "User not found." });
+    }
+
+    // Check if notification already exists
+    const existing = db.notifications.find(n => 
+        n.type === type && 
+        n.fromEmail === fromEmail && 
+        n.toEmail === toEmail && 
+        n.deviceId === deviceId && 
+        n.status === 'pending'
+    );
+
+    if (existing) {
+        return res.status(400).json({ success: false, message: "Request already sent." });
+    }
+
+    const notification = {
+        id: Date.now().toString(),
+        type, // 'share' or 'transfer'
+        fromEmail,
+        toEmail,
+        deviceId,
+        deviceName: deviceName || '',
+        permission: permission || 'view',
+        status: 'pending',
+        createdAt: new Date().toISOString()
+    };
+
+    db.notifications.push(notification);
+    writeDB(db);
+    
+    res.json({ success: true, message: "Request sent successfully." });
+});
+
+// Accept notification (share/transfer)
+app.post("/api/notifications/:id/accept", (req, res) => {
+    const notificationId = req.params.id;
+    const userEmail = req.query.email;
+    
+    if (!userEmail) return res.status(400).json({ success: false, message: "Email required." });
+
+    const db = readDB();
+    if (!db.notifications) db.notifications = [];
+    
+    const notification = db.notifications.find(n => n.id === notificationId && n.status === 'pending');
+    if (!notification) {
+        return res.status(404).json({ success: false, message: "Notification not found." });
+    }
+
+    if (notification.toEmail !== userEmail) {
+        return res.status(403).json({ success: false, message: "Unauthorized." });
+    }
+
+    if (notification.type === 'share') {
+        // Add to sharedWith
+        const device = db.devices.find(d => d.id === notification.deviceId);
+        if (!device) {
+            return res.status(404).json({ success: false, message: "Device not found." });
+        }
+
+        if (!device.sharedWith) device.sharedWith = [];
+        const existing = device.sharedWith.find(s => s.email === userEmail);
+        if (existing) {
+            existing.permission = notification.permission;
+        } else {
+            device.sharedWith.push({ email: userEmail, permission: notification.permission });
+        }
+        writeDB(db);
+    } else if (notification.type === 'transfer') {
+        // Transfer ownership
+        const device = db.devices.find(d => d.id === notification.deviceId);
+        if (!device) {
+            return res.status(404).json({ success: false, message: "Device not found." });
+        }
+
+        if (device.owner !== notification.fromEmail) {
+            return res.status(403).json({ success: false, message: "Original owner no longer owns this device." });
+        }
+
+        // Remove old owner from sharedWith if present
+        if (!device.sharedWith) device.sharedWith = [];
+        device.sharedWith = device.sharedWith.filter(s => s.email !== notification.fromEmail);
+        
+        // Add old owner as viewer
+        device.sharedWith.push({ email: notification.fromEmail, permission: 'view' });
+        
+        // Transfer ownership
+        device.owner = userEmail;
+        
+        // Remove new owner from sharedWith if they were shared
+        device.sharedWith = device.sharedWith.filter(s => s.email !== userEmail);
+        
+        writeDB(db);
+    }
+
+    // Mark notification as accepted
+    notification.status = 'accepted';
+    notification.respondedAt = new Date().toISOString();
+    writeDB(db);
+
+    res.json({ success: true, message: "Request accepted." });
+});
+
+// Reject notification
+app.post("/api/notifications/:id/reject", (req, res) => {
+    const notificationId = req.params.id;
+    const userEmail = req.query.email;
+    
+    if (!userEmail) return res.status(400).json({ success: false, message: "Email required." });
+
+    const db = readDB();
+    if (!db.notifications) db.notifications = [];
+    
+    const notification = db.notifications.find(n => n.id === notificationId && n.status === 'pending');
+    if (!notification) {
+        return res.status(404).json({ success: false, message: "Notification not found." });
+    }
+
+    if (notification.toEmail !== userEmail) {
+        return res.status(403).json({ success: false, message: "Unauthorized." });
+    }
+
+    notification.status = 'rejected';
+    notification.respondedAt = new Date().toISOString();
+    writeDB(db);
+
+    res.json({ success: true, message: "Request rejected." });
 });
 
 // --- ADMIN ROUTES ---

@@ -4,21 +4,19 @@
       "email": "admin@eps.com",
       "password": "admin123",
       "name": "System Admin",
-      "role": "admin",
-      "organization": "Basis"
-    },
-    {
-      "email": "user@eps.com",
-      "password": "user123",
-      "name": "John Doe",
-      "role": "user",
-      "organization": ""
+      "role": "admin"
     },
     {
       "email": "shingchoyip@gmail.com",
       "password": "123456",
       "name": "Joey Yip",
-      "role": "admin",
+      "role": "admin"
+    },
+    {
+      "email": "user@eps.com",
+      "password": "user123",
+      "name": "user",
+      "role": "user",
       "organization": ""
     }
   ],
@@ -26,7 +24,51 @@
     {
       "id": "3175602",
       "name": "Main System",
-      "owner": "admin@eps.com"
+      "owner": "admin@eps.com",
+      "sharedWith": [
+        {
+          "email": "user@eps.com",
+          "permission": "view"
+        }
+      ]
+    }
+  ],
+  "notifications": [
+    {
+      "id": "1763918274944",
+      "type": "share",
+      "fromEmail": "admin@eps.com",
+      "toEmail": "user@eps.com",
+      "deviceId": "3175602",
+      "deviceName": "Main System",
+      "permission": "view",
+      "status": "accepted",
+      "createdAt": "2025-11-23T17:17:54.944Z",
+      "respondedAt": "2025-11-23T17:18:14.348Z"
+    },
+    {
+      "id": "1763918281485",
+      "type": "transfer",
+      "fromEmail": "admin@eps.com",
+      "toEmail": "user@eps.com",
+      "deviceId": "3175602",
+      "deviceName": "Main System",
+      "permission": "view",
+      "status": "accepted",
+      "createdAt": "2025-11-23T17:18:01.485Z",
+      "respondedAt": "2025-11-23T17:18:18.277Z"
+    },
+    {
+      "id": "1763918321886",
+      "type": "transfer",
+      "fromEmail": "user@eps.com",
+      "toEmail": "admin@eps.com",
+      "deviceId": "3175602",
+      "deviceName": "Main System",
+      "permission": "view",
+      "status": "accepted",
+      "createdAt": "2025-11-23T17:18:41.886Z",
+      "respondedAt": "2025-11-23T17:18:55.434Z"
     }
   ]
 }

@@ -228,22 +228,310 @@ function closeDeleteModal() {
     deviceIdToDelete = null;
 }
 
+// -- Share Device Logic --
+let deviceIdToShare = null;
+let deviceNameToShare = null;
+
+function openShareModal(id, name, event) {
+    if(event) event.stopPropagation();
+    deviceIdToShare = id;
+    deviceNameToShare = name;
+    const modal = document.getElementById('share-device-modal');
+    const nameEl = document.getElementById('share-device-name');
+    if(modal) {
+        modal.classList.remove('hidden');
+        if(nameEl) nameEl.textContent = name;
+        loadSharedUsers(id);
+    }
+}
+
+function closeShareModal() {
+    const modal = document.getElementById('share-device-modal');
+    if(modal) modal.classList.add('hidden');
+    deviceIdToShare = null;
+    deviceNameToShare = null;
+    const userEmailInput = document.getElementById('share-user-email');
+    const permissionSelect = document.getElementById('share-permission-select');
+    const transferEmailInput = document.getElementById('transfer-user-email');
+    if(userEmailInput) userEmailInput.value = '';
+    if(permissionSelect) permissionSelect.value = 'view';
+    if(transferEmailInput) transferEmailInput.value = '';
+}
+
+// No longer needed - using email input instead
+// async function loadUsersForSharing() { ... }
+
+// No longer needed - using email input instead
+// async function loadUsersForTransfer() { ... }
+
+async function loadSharedUsers(deviceId) {
+    const sharedList = document.getElementById('shared-users-list');
+    if(!sharedList) return;
+
+    try {
+        const email = localStorage.getItem('eps_user_email');
+        const res = await fetch(`/api/devices?email=${email}`);
+        const devices = await res.json();
+        const device = devices.find(d => d.id === deviceId);
+        
+        if(!device) {
+            sharedList.innerHTML = '<p class="text-sm text-red-500 text-center py-4">Device not found.</p>';
+            return;
+        }
+
+        // Check if user is owner (only owners can see shared users list)
+        if(device.permission !== 'owner') {
+            sharedList.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">Only device owners can manage shared access.</p>';
+            return;
+        }
+        
+        if(!device.sharedWith || !Array.isArray(device.sharedWith) || device.sharedWith.length === 0) {
+            sharedList.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">No users have access to this device yet.</p>';
+            return;
+        }
+
+        // Fetch user names
+        const allUsersRes = await fetch('/api/users');
+        const allUsers = await allUsersRes.json();
+        
+        sharedList.innerHTML = '';
+        device.sharedWith.forEach(share => {
+            const user = allUsers.find(u => u.email === share.email);
+            const userName = user ? user.name : share.email;
+            const permission = share.permission === 'manage' ? 'Manage' : 'View Only';
+            const permissionColor = share.permission === 'manage' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700';
+            
+            const item = document.createElement('div');
+            item.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-2';
+            item.innerHTML = `
+                <div class="flex-1">
+                    <p class="text-sm font-semibold text-gray-900">${userName}</p>
+                    <p class="text-xs text-gray-500">${share.email}</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="px-2 py-1 text-xs font-bold rounded-full ${permissionColor}">${permission}</span>
+                    <button onclick="removeSharedAccess('${share.email}', event)" class="text-red-500 hover:text-red-700 p-1" title="Remove Access">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            `;
+            sharedList.appendChild(item);
+        });
+    } catch(e) {
+        console.error('Error loading shared users:', e);
+        sharedList.innerHTML = '<p class="text-sm text-red-500 text-center py-4">Error loading shared users.</p>';
+    }
+}
+
+async function handleShareDevice(event) {
+    event.preventDefault();
+    const userEmailInput = document.getElementById('share-user-email');
+    const permissionSelect = document.getElementById('share-permission-select');
+    
+    if(!userEmailInput || !permissionSelect || !deviceIdToShare) return;
+    
+    const shareWithEmail = userEmailInput.value.trim();
+    const permission = permissionSelect.value;
+    const ownerEmail = localStorage.getItem('eps_user_email');
+    
+    if(!shareWithEmail) {
+        showNotification("Please enter a user email", "warning");
+        return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if(!emailRegex.test(shareWithEmail)) {
+        showNotification("Please enter a valid email address", "error");
+        return;
+    }
+
+    try {
+        // Send notification instead of directly sharing
+        const res = await fetch('/api/notifications', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                type: 'share',
+                fromEmail: ownerEmail,
+                toEmail: shareWithEmail,
+                deviceId: deviceIdToShare,
+                deviceName: deviceNameToShare,
+                permission: permission
+            })
+        });
+        
+        const data = await res.json();
+        if(data.success) {
+            showNotification(`Request sent to ${shareWithEmail}. They will receive a notification to accept.`, "success");
+            loadSharedUsers(deviceIdToShare);
+            userEmailInput.value = '';
+        } else {
+            showNotification(data.message, "error");
+        }
+    } catch(e) {
+        showNotification("Error sending request: " + e.message, "error");
+    }
+}
+
+// Custom confirmation modal
+let confirmResolve = null;
+
+function showConfirmModal(title, message, okText = "Confirm", okClass = "bg-blue-600 hover:bg-blue-700") {
+    return new Promise((resolve) => {
+        confirmResolve = resolve;
+        const modal = document.getElementById('confirm-modal');
+        const titleEl = document.getElementById('confirm-title');
+        const messageEl = document.getElementById('confirm-message');
+        const okBtn = document.getElementById('confirm-ok-btn');
+        
+        if(modal && titleEl && messageEl && okBtn) {
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            okBtn.textContent = okText;
+            okBtn.className = `flex-1 ${okClass} text-white py-3 rounded-lg font-bold shadow-md transition`;
+            modal.classList.remove('hidden');
+        }
+    });
+}
+
+function closeConfirmModal(confirmed) {
+    const modal = document.getElementById('confirm-modal');
+    if(modal) {
+        modal.classList.add('hidden');
+    }
+    if(confirmResolve) {
+        confirmResolve(confirmed);
+        confirmResolve = null;
+    }
+}
+
+async function removeSharedAccess(email, event) {
+    if(event) event.stopPropagation();
+    if(!deviceIdToShare) return;
+    
+    const confirmed = await showConfirmModal(
+        "Remove Access",
+        `Are you sure you want to remove access for ${email}?`,
+        "Remove Access",
+        "bg-red-600 hover:bg-red-700"
+    );
+    
+    if(!confirmed) return;
+
+    const ownerEmail = localStorage.getItem('eps_user_email');
+    
+    try {
+        const res = await fetch('/api/devices/share', {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                deviceId: deviceIdToShare,
+                ownerEmail: ownerEmail,
+                shareWithEmail: email
+            })
+        });
+        
+        const data = await res.json();
+        if(data.success) {
+            showNotification(data.message, "success");
+            loadSharedUsers(deviceIdToShare);
+            renderDeviceList();
+        } else {
+            showNotification(data.message, "error");
+        }
+    } catch(e) {
+        showNotification("Error removing access: " + e.message, "error");
+    }
+}
+
+async function handleTransferOwnership(event) {
+    event.preventDefault();
+    const transferEmailInput = document.getElementById('transfer-user-email');
+    
+    if(!transferEmailInput || !deviceIdToShare) return;
+    
+    const newOwnerEmail = transferEmailInput.value.trim();
+    const currentOwnerEmail = localStorage.getItem('eps_user_email');
+    
+    if(!newOwnerEmail) {
+        showNotification("Please enter a user email", "warning");
+        return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if(!emailRegex.test(newOwnerEmail)) {
+        showNotification("Please enter a valid email address", "error");
+        return;
+    }
+
+    // Get user name for display
+    let userName = newOwnerEmail;
+    try {
+        const usersRes = await fetch('/api/users');
+        const users = await usersRes.json();
+        const user = users.find(u => u.email === newOwnerEmail);
+        if(user) userName = user.name;
+    } catch(e) {}
+
+    const confirmed = await showConfirmModal(
+        "Send Transfer Request",
+        `Send ownership transfer request to ${userName} (${newOwnerEmail})? They will need to accept the request.`,
+        "Send Request",
+        "bg-red-600 hover:bg-red-700"
+    );
+    
+    if(!confirmed) return;
+
+    try {
+        // Send notification instead of directly transferring
+        const res = await fetch('/api/notifications', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                type: 'transfer',
+                fromEmail: currentOwnerEmail,
+                toEmail: newOwnerEmail,
+                deviceId: deviceIdToShare,
+                deviceName: deviceNameToShare
+            })
+        });
+        
+        const data = await res.json();
+        if(data.success) {
+            showNotification(`Transfer request sent to ${newOwnerEmail}. They will receive a notification to accept.`, "success");
+            closeShareModal();
+            loadNotifications();
+        } else {
+            showNotification(data.message, "error");
+        }
+    } catch(e) {
+        showNotification("Error sending request: " + e.message, "error");
+    }
+}
+
 async function confirmDelete() {
     if(deviceIdToDelete) {
         const email = localStorage.getItem('eps_user_email');
         // Remove from server
-        await fetch('/api/devices', { 
+        const res = await fetch('/api/devices', { 
             method: 'DELETE', 
             headers: {'Content-Type': 'application/json'}, 
-            body: JSON.stringify({ id: deviceIdToDelete, owner: email }) 
+            body: JSON.stringify({ id: deviceIdToDelete, requesterEmail: email }) 
         });
+        const data = await res.json();
         
         // Update UI
         renderDeviceList();
         // Try to update profile list if it exists
         if(typeof renderProfileDeviceList === 'function') renderProfileDeviceList();
         
-        showNotification("Device deleted", "success");
+        if (data.success) {
+            showNotification(data.message || "Device removed", "success");
+        } else {
+            showNotification(data.message || "Failed to remove device", "error");
+        }
         closeDeleteModal();
     }
 }
@@ -285,13 +573,46 @@ function createDeviceCard(device) {
     const card = document.createElement('div');
     card.className = "bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition group relative flex flex-col overflow-hidden";
     
+    // Determine permission and ownership
+    const permission = device.permission || 'owner';
+    const isShared = device.isShared || false;
+    const isAdminView = device.isAdminView || false;
+    // Check if permission is admin-view (even if isAdminView flag is missing)
+    const isAdminViewPermission = permission === 'admin-view' || isAdminView;
+    // For admin-view devices, permission is 'admin-view', not 'owner'
+    const isOwner = permission === 'owner' && !isAdminViewPermission;
+    const canManage = isOwner || permission === 'manage';
+    
+    // Permission badge - check admin-view first
+    let permissionBadge = '';
+    if (isAdminViewPermission) {
+        // Admin viewing device owned by someone else
+        permissionBadge = `<span class="px-2 py-1 text-xs font-bold rounded-full bg-yellow-100 text-yellow-700">Admin View</span>`;
+    } else if (isShared) {
+        const badgeColor = permission === 'manage' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700';
+        const badgeText = permission === 'manage' ? 'Manage' : 'View Only';
+        permissionBadge = `<span class="px-2 py-1 text-xs font-bold rounded-full ${badgeColor}">${badgeText}</span>`;
+    } else {
+        permissionBadge = `<span class="px-2 py-1 text-xs font-bold rounded-full bg-green-100 text-green-700">Owner</span>`;
+    }
+    
+    // Show owner info for admin-view devices
+    let ownerInfo = '';
+    if (isAdminViewPermission && device.owner) {
+        ownerInfo = `<p class="text-xs text-gray-500 mt-1">Owner: ${device.owner}</p>`;
+    }
+    
     card.innerHTML = `
         <div id="card-body-${device.id}" class="p-6 cursor-pointer flex-grow transition-opacity duration-300" onclick="window.location.href='device.html?id=${device.id}&name=${encodeURIComponent(device.name)}'">
             <div class="flex items-start justify-between mb-4">
                 <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors">📊</div>
-                <span class="bg-gray-100 text-gray-500 text-xs font-bold font-mono px-2 py-1 rounded border border-gray-200">ID: ${device.id}</span>
+                <div class="flex flex-col items-end gap-1">
+                    <span class="bg-gray-100 text-gray-500 text-xs font-bold font-mono px-2 py-1 rounded border border-gray-200">ID: ${device.id}</span>
+                    ${permissionBadge}
+                </div>
             </div>
             <h3 class="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition mb-2 truncate">${device.name}</h3>
+            ${ownerInfo}
             <div class="flex items-center text-xs text-gray-500" id="status-container-${device.id}">
                 <span class="w-2 h-2 bg-gray-300 rounded-full mr-2"></span> Checking...
             </div>
@@ -299,16 +620,147 @@ function createDeviceCard(device) {
         <div class="bg-gray-50 border-t border-gray-100 px-4 py-3 flex items-center justify-between gap-3">
             <button id="btn-view-${device.id}" onclick="window.location.href='device.html?id=${device.id}&name=${encodeURIComponent(device.name)}'" class="flex-1 bg-white border border-gray-200 text-gray-700 hover:text-blue-600 hover:border-blue-300 text-xs font-bold py-2 rounded-lg transition shadow-sm">View</button>
             <div class="flex space-x-1 border-l border-gray-200 pl-2">
-                <button onclick="openRenameModal('${device.id}', '${device.name}', event)" class="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition" title="Rename">
+                ${isOwner && !isAdminViewPermission ? `<button onclick="openShareModal('${device.id}', '${device.name}', event)" class="p-2 text-gray-400 hover:text-green-600 rounded-lg hover:bg-green-50 transition" title="Share Device">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                </button>` : ''}
+                ${canManage && !isAdminViewPermission ? `<button onclick="openRenameModal('${device.id}', '${device.name}', event)" class="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition" title="Rename">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                </button>
-                <button onclick="deleteDevice('${device.id}', event)" class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition" title="Delete">
+                </button>` : ''}
+                ${isAdminViewPermission ? `<button onclick="deleteDevice('${device.id}', event)" class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition opacity-50 cursor-not-allowed" title="Delete Device (Admin - Only owner can delete)" disabled>
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                </button>
+                </button>` : permission === 'view' && isShared ? `<button onclick="deleteDevice('${device.id}', event)" class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition" title="Remove My Access">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>` : `<button onclick="deleteDevice('${device.id}', event)" class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition" title="${isOwner ? 'Delete Device' : 'Remove Access'}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>`}
             </div>
         </div>
     `;
     return card;
+}
+
+// Load and display notifications
+async function loadNotifications() {
+    const notificationsList = document.getElementById('notifications-list');
+    if(!notificationsList) return;
+
+    const email = localStorage.getItem('eps_user_email');
+    if(!email) {
+        notificationsList.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">Please log in to view notifications</p>';
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/notifications?email=${encodeURIComponent(email)}`);
+        
+        if(!res.ok) {
+            throw new Error(`Server returned ${res.status}`);
+        }
+        
+        const notifications = await res.json();
+
+        if(!Array.isArray(notifications)) {
+            throw new Error('Invalid response format');
+        }
+
+        if(notifications.length === 0) {
+            notificationsList.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">No pending notifications</p>';
+            return;
+        }
+
+        notificationsList.innerHTML = '';
+        
+        // Fetch all users once for name resolution
+        let users = [];
+        try {
+            const usersRes = await fetch('/api/users');
+            users = await usersRes.json();
+        } catch(e) {
+            console.warn('Could not load user names:', e);
+        }
+
+        notifications.forEach(notif => {
+            const item = document.createElement('div');
+            item.className = 'p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-blue-300 transition';
+            
+            const isShare = notif.type === 'share';
+            const permissionText = isShare ? (notif.permission === 'manage' ? 'Manage' : 'View Only') : 'Ownership';
+            const permissionColor = isShare ? (notif.permission === 'manage' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700') : 'bg-green-100 text-green-700';
+            
+            // Get sender name
+            const sender = users.find(u => u.email === notif.fromEmail);
+            const senderName = sender ? sender.name : notif.fromEmail;
+            const createdAt = notif.createdAt ? new Date(notif.createdAt).toLocaleString() : 'Unknown date';
+
+            item.innerHTML = `
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="px-2 py-1 text-xs font-bold rounded-full ${permissionColor}">${permissionText}</span>
+                            <span class="text-xs text-gray-500">${isShare ? 'Share Request' : 'Transfer Request'}</span>
+                        </div>
+                        <p class="text-sm font-semibold text-gray-900 mb-1">
+                            ${senderName} wants to ${isShare ? `share` : `transfer ownership of`} device
+                        </p>
+                        <p class="text-sm text-gray-600 font-medium">${notif.deviceName || 'Device'} (ID: ${notif.deviceId})</p>
+                        <p class="text-xs text-gray-500 mt-1">${createdAt}</p>
+                    </div>
+                    <div class="flex gap-2 ml-4">
+                        <button onclick="acceptNotification('${notif.id}')" class="px-4 py-2 bg-green-600 text-white text-sm font-bold rounded-lg hover:bg-green-700 transition">Accept</button>
+                        <button onclick="rejectNotification('${notif.id}')" class="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-bold rounded-lg hover:bg-gray-300 transition">Reject</button>
+                    </div>
+                </div>
+            `;
+            notificationsList.appendChild(item);
+        });
+    } catch(e) {
+        console.error('Error loading notifications:', e);
+        notificationsList.innerHTML = `<p class="text-sm text-red-500 text-center py-4">Error loading notifications: ${e.message}</p>`;
+    }
+}
+
+async function acceptNotification(notificationId) {
+    const email = localStorage.getItem('eps_user_email');
+    if(!email) return;
+
+    try {
+        const res = await fetch(`/api/notifications/${notificationId}/accept?email=${email}`, {
+            method: 'POST'
+        });
+        const data = await res.json();
+        
+        if(data.success) {
+            showNotification("Request accepted", "success");
+            loadNotifications();
+            renderDeviceList();
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showNotification(data.message, "error");
+        }
+    } catch(e) {
+        showNotification("Error accepting request: " + e.message, "error");
+    }
+}
+
+async function rejectNotification(notificationId) {
+    const email = localStorage.getItem('eps_user_email');
+    if(!email) return;
+
+    try {
+        const res = await fetch(`/api/notifications/${notificationId}/reject?email=${email}`, {
+            method: 'POST'
+        });
+        const data = await res.json();
+        
+        if(data.success) {
+            showNotification("Request rejected", "success");
+            loadNotifications();
+        } else {
+            showNotification(data.message, "error");
+        }
+    } catch(e) {
+        showNotification("Error rejecting request: " + e.message, "error");
+    }
 }
 
 // Dashboard Device List
@@ -327,11 +779,45 @@ async function renderDeviceList() {
         if(statTotal) statTotal.innerText = devices.length;
         listContainer.innerHTML = '';
 
+        // Check if user has any owned devices (to determine if they can add devices)
+        const hasOwnedDevices = devices.some(d => d.permission === 'owner' || (!d.isShared && !d.isAdminView));
+        const canAddDevices = hasOwnedDevices || devices.length === 0; // Can add if they have owned devices or no devices yet
+
+        // Hide/show Add Device FAB based on permissions
+        const addDeviceFABs = document.querySelectorAll('button[onclick="toggleAddDeviceModal()"]');
+        addDeviceFABs.forEach(btn => {
+            if (!canAddDevices) {
+                btn.classList.add('hidden');
+            } else {
+                btn.classList.remove('hidden');
+            }
+        });
+
+        // Hide Add Device button in empty state for view-only users
+        const emptyStateAddBtn = emptyState?.querySelector('button[onclick="toggleAddDeviceModal()"]');
+        if (emptyStateAddBtn) {
+            if (!canAddDevices) {
+                emptyStateAddBtn.classList.add('hidden');
+            } else {
+                emptyStateAddBtn.classList.remove('hidden');
+            }
+        }
+
         if (devices.length === 0) {
             emptyState.classList.remove('hidden');
         } else {
             emptyState.classList.add('hidden');
             devices.forEach(device => {
+                // Debug: Log device info to verify server response
+                if (device.id === '3175602') {
+                    console.log('Device 3175602 info:', {
+                        permission: device.permission,
+                        isAdminView: device.isAdminView,
+                        isShared: device.isShared,
+                        owner: device.owner,
+                        currentUser: email
+                    });
+                }
                 listContainer.appendChild(createDeviceCard(device));
                 checkCardStatus(device.id);
             });
@@ -356,14 +842,29 @@ async function renderProfileDeviceList() {
         }
         
         devices.forEach(device => {
+            const permission = device.permission || 'owner';
+            const isShared = device.isShared || false;
+            const isAdminView = device.isAdminView || false;
+            
+            let permissionBadge = '';
+            if (isAdminView) {
+                permissionBadge = '<span class="px-2 py-1 text-xs font-bold text-yellow-700 bg-yellow-100 rounded-full">Admin View</span>';
+            } else if (isShared) {
+                permissionBadge = permission === 'manage' 
+                    ? '<span class="px-2 py-1 text-xs font-bold text-purple-700 bg-purple-100 rounded-full">Manage</span>'
+                    : '<span class="px-2 py-1 text-xs font-bold text-blue-700 bg-blue-100 rounded-full">View Only</span>';
+            } else {
+                permissionBadge = '<span class="px-2 py-1 text-xs font-bold text-green-700 bg-green-100 rounded-full">Owner</span>';
+            }
+            
             const row = document.createElement('tr');
             row.className = "hover:bg-gray-50 transition";
             row.innerHTML = `
-                <td class="px-6 py-4 font-medium text-gray-900">${device.name}</td>
+                <td class="px-6 py-4 font-medium text-gray-900">${device.name}${isAdminView && device.owner ? `<br><span class="text-xs text-gray-500">Owner: ${device.owner}</span>` : ''}</td>
                 <td class="px-6 py-4 text-gray-500 font-mono text-xs">${device.id}</td>
-                <td class="px-6 py-4"><span class="px-2 py-1 text-xs font-bold text-green-700 bg-green-100 rounded-full">Active</span></td>
+                <td class="px-6 py-4">${permissionBadge}</td>
                 <td class="px-6 py-4 text-right">
-                    <button onclick="deleteDevice('${device.id}', event)" class="text-red-500 hover:text-red-700 font-bold text-xs">Remove</button>
+                    <button onclick="deleteDevice('${device.id}', event)" class="text-red-500 hover:text-red-700 font-bold text-xs ${isAdminView ? 'opacity-50 cursor-not-allowed' : ''}" ${isAdminView ? 'disabled' : ''}>Remove</button>
                 </td>
             `;
             tbody.appendChild(row);
@@ -500,6 +1001,23 @@ async function handleAddDevice(event) {
     const btn = document.querySelector('#add-device-modal button[type="submit"]');
 
     if (!name || !id) return;
+    
+    // Check if user can add devices (has owned devices or no devices)
+    try {
+        const devicesRes = await fetch(`/api/devices?email=${email}`);
+        const devices = await devicesRes.json();
+        const hasOwnedDevices = devices.some(d => d.permission === 'owner' || (!d.isShared && !d.isAdminView));
+        const canAddDevices = hasOwnedDevices || devices.length === 0;
+        
+        if (!canAddDevices) {
+            showNotification("You don't have permission to add devices. Only device owners can add new devices.", "error");
+            return;
+        }
+    } catch(e) {
+        showNotification("Error checking permissions", "error");
+        return;
+    }
+
     btn.innerText = "Validating..."; btn.disabled = true;
 
     try {

@@ -204,6 +204,20 @@
             </div>
         </div>
 
+        <!-- Notifications Section -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-900 mb-1">Notifications</h2>
+                    <p class="text-sm text-gray-500">Device sharing and transfer requests</p>
+                </div>
+                <button onclick="loadNotifications()" class="text-sm text-blue-600 font-semibold hover:text-blue-700">Refresh</button>
+            </div>
+            <div id="notifications-list" class="space-y-3">
+                <p class="text-sm text-gray-500 text-center py-4">Loading notifications...</p>
+            </div>
+        </div>
+
         <!-- Devices Section -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -290,9 +304,83 @@
         </div>
     </div>
 
+    <!-- Share Device Modal -->
+    <div id="share-device-modal" class="fixed inset-0 bg-gray-900/60 hidden flex items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl p-8 w-full max-w-lg shadow-2xl m-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Share Device</h2>
+                <button onclick="closeShareModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div class="mb-6">
+                <p class="text-sm text-gray-600 mb-4">Device: <span id="share-device-name" class="font-semibold text-gray-900"></span></p>
+                
+                <form onsubmit="handleShareDevice(event)" class="space-y-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Share with User Email</label>
+                        <input type="email" id="share-user-email" placeholder="Enter user email address" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" required>
+                        <p class="text-xs text-gray-500 mt-1">Enter the email address of the user you want to share with</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Permission Level</label>
+                        <select id="share-permission-select" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition">
+                            <option value="view">View Only - Can only view device data</option>
+                            <option value="manage">Manage - Can view and modify device settings</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 shadow-lg hover:shadow-blue-500/30 transition">Share Device</button>
+                </form>
+            </div>
+
+            <div class="border-t border-gray-200 pt-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Shared With</h3>
+                <div id="shared-users-list" class="space-y-2">
+                    <p class="text-sm text-gray-500 text-center py-4">Loading...</p>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-200 pt-6 mt-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Transfer Ownership</h3>
+                <p class="text-sm text-gray-500 mb-4">Transfer device ownership to another user. You will lose ownership and become a viewer.</p>
+                <form onsubmit="handleTransferOwnership(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Transfer to User Email</label>
+                        <input type="email" id="transfer-user-email" placeholder="Enter user email address" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition" required>
+                        <p class="text-xs text-gray-500 mt-1">Enter the email address of the user you want to transfer ownership to</p>
+                    </div>
+                    <button type="submit" class="w-full bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700 shadow-lg hover:shadow-red-500/30 transition">Transfer Ownership</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Modal -->
+    <div id="confirm-modal" class="fixed inset-0 bg-gray-900/60 hidden flex items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl m-4 transform transition-all">
+            <div class="flex items-start mb-6">
+                <div class="flex-shrink-0 w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-xl font-bold text-gray-900 mb-2" id="confirm-title">Confirm Action</h3>
+                    <p class="text-gray-600" id="confirm-message">Are you sure you want to proceed?</p>
+                </div>
+            </div>
+            <div class="flex space-x-3">
+                <button onclick="closeConfirmModal(false)" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-bold hover:bg-gray-200 transition">Cancel</button>
+                <button onclick="closeConfirmModal(true)" id="confirm-ok-btn" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 shadow-md transition">Confirm</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            loadNotifications();
             const dateEl = document.getElementById('current-date');
             if(dateEl) {
                 const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
