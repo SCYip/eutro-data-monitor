@@ -124,6 +124,13 @@
     <script src="script.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Load user name
+            const userWelcome = document.getElementById('user-welcome');
+            if(userWelcome) {
+                const name = localStorage.getItem('eps_user_name') || 'User';
+                userWelcome.innerText = name;
+            }
+            
             const urlParams = new URLSearchParams(window.location.search);
             const deviceId = urlParams.get('id');
             const deviceName = urlParams.get('name');

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -12,8 +12,8 @@
     <nav class="bg-gray-900 text-white px-6 py-4 flex justify-between items-center shadow-lg sticky top-0 z-50">
         <div class="flex items-center gap-6">
             <a href="index.html" class="flex items-center group">
-                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white mr-3 group-hover:bg-blue-500 transition">A</div>
-                <div class="font-bold text-lg tracking-wide group-hover:text-blue-300 transition">EPS Command Center</div>
+                <img src="logo.svg" alt="ChitoNet Logo" class="h-8 w-auto object-contain mr-3 transition-transform group-hover:scale-105">
+                <div class="font-bold text-lg tracking-wide group-hover:text-blue-300 transition">ChitoNet</div>
             </a>
             
             <!-- Back to Website Link -->
@@ -40,32 +40,196 @@
         </div>
     </nav>
 
-    <!-- Main Content (Same as before) -->
-    <div class="max-w-7xl mx-auto p-6 space-y-8 w-full flex-grow">
-        <div class="flex flex-col gap-2 pb-4 border-b border-gray-200">
-            <p class="text-gray-500 text-xs font-bold uppercase tracking-wider" id="current-date">LOADING...</p>
-            <h1 class="text-3xl font-extrabold text-gray-900">My Devices</h1>
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-6 py-8 w-full flex-grow">
+        <!-- Header Section -->
+        <div class="mb-8">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-1">Dashboard</h1>
+                    <p class="text-gray-500 text-sm">Welcome back, <span id="dashboard-user-name">User</span> • <span id="current-date" class="font-medium">LOADING...</span></p>
+                </div>
+                <a href="monitor.html" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition shadow-md hover:shadow-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    Live Monitor
+                </a>
+            </div>
         </div>
 
-        <div class="space-y-6">
-            <div class="max-w-md">
-                <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-500">Total Devices</span>
+                    <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
                     </div>
-                    <input type="text" id="device-search" placeholder="Search devices..." class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm" onkeyup="filterDevices(this.value)">
+                </div>
+                <div class="text-2xl font-bold text-gray-900" id="stat-total-devices">0</div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-500">Online</span>
+                    <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                </div>
+                <div class="text-2xl font-bold text-gray-900" id="stat-online-devices">0</div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-500">Offline</span>
+                    <div class="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                </div>
+                <div class="text-2xl font-bold text-gray-900" id="stat-offline-devices">0</div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-500">Quick Actions</span>
+                    <div class="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+                </div>
+                <button onclick="toggleAddDeviceModal()" class="text-sm text-blue-600 font-semibold hover:text-blue-700">Add Device</button>
+            </div>
+        </div>
+
+        <!-- Data Statistics Section -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-1">Data Summary</h2>
+                <p class="text-sm text-gray-500">Overview of sensor readings across all devices</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- pH Statistics -->
+                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">pH Level</h3>
+                                <p class="text-xs text-gray-600">Acidity measurement</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Average</span>
+                            <span class="text-xl font-bold text-gray-900" id="ph-average">--</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Min</span>
+                            <span class="text-lg font-semibold text-gray-700" id="ph-min">--</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Max</span>
+                            <span class="text-lg font-semibold text-gray-700" id="ph-max">--</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-2 border-t border-green-200">
+                            <span class="text-sm text-gray-600">Latest</span>
+                            <span class="text-lg font-bold text-green-700" id="ph-latest">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Temperature Statistics -->
+                <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-6 border border-red-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">Temperature</h3>
+                                <p class="text-xs text-gray-600">Celsius (°C)</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Average</span>
+                            <span class="text-xl font-bold text-gray-900" id="temp-average">--</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Min</span>
+                            <span class="text-lg font-semibold text-gray-700" id="temp-min">--</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Max</span>
+                            <span class="text-lg font-semibold text-gray-700" id="temp-max">--</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-2 border-t border-red-200">
+                            <span class="text-sm text-gray-600">Latest</span>
+                            <span class="text-lg font-bold text-red-700" id="temp-latest">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Turbidity Statistics -->
+                <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-6 border border-yellow-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">Turbidity</h3>
+                                <p class="text-xs text-gray-600">NTU (Nephelometric)</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Average</span>
+                            <span class="text-xl font-bold text-gray-900" id="turb-average">--</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Min</span>
+                            <span class="text-lg font-semibold text-gray-700" id="turb-min">--</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Max</span>
+                            <span class="text-lg font-semibold text-gray-700" id="turb-max">--</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-2 border-t border-yellow-200">
+                            <span class="text-sm text-gray-600">Latest</span>
+                            <span class="text-lg font-bold text-yellow-700" id="turb-latest">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Devices Section -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-900 mb-1">My Devices</h2>
+                    <p class="text-sm text-gray-500">Manage and monitor your sensor devices</p>
+                </div>
+                <div class="max-w-md w-full sm:w-auto">
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                        <input type="text" id="device-search" placeholder="Search devices..." class="block w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm hover:shadow">
+                    </div>
                 </div>
             </div>
 
             <div id="device-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
 
-            <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-300 text-center">
-                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4 text-gray-400">
-                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+            <div id="empty-state" class="hidden flex flex-col items-center justify-center py-16 text-center">
+                <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                 </div>
-                <h3 class="text-xl font-bold text-gray-700">No devices found</h3>
-                <p class="text-gray-500 mt-1 mb-6">Get started by adding your first monitoring unit.</p>
-                <button onclick="toggleAddDeviceModal()" class="text-blue-600 font-bold hover:underline">Add New Device</button>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">No devices found</h3>
+                <p class="text-gray-500 text-sm mb-6 max-w-sm">Get started by adding your first monitoring unit to track water quality data.</p>
+                <button onclick="toggleAddDeviceModal()" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition shadow-md hover:shadow-lg">Add New Device</button>
             </div>
         </div>
     </div>
@@ -134,8 +298,179 @@
                 const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
                 dateEl.innerText = new Date().toLocaleDateString('en-US', options);
             }
+            
+            const userNameEl = document.getElementById('dashboard-user-name');
+            if(userNameEl) {
+                const name = localStorage.getItem('eps_user_name') || 'User';
+                userNameEl.innerText = name;
+            }
+            
             renderDeviceList();
+            updateDashboardStats();
+            updateDataStatistics();
         });
+
+        async function updateDashboardStats() {
+            const email = localStorage.getItem('eps_user_email');
+            if (!email) return;
+
+            try {
+                const res = await fetch(`/api/devices?email=${email}`);
+                const devices = await res.json();
+                
+                const totalEl = document.getElementById('stat-total-devices');
+                const onlineEl = document.getElementById('stat-online-devices');
+                const offlineEl = document.getElementById('stat-offline-devices');
+                
+                if(totalEl) totalEl.innerText = devices.length;
+                
+                let online = 0;
+                let offline = 0;
+                
+                // Check status for each device
+                for (const device of devices) {
+                    try {
+                        const statusRes = await fetch(`https://api.thingspeak.com/channels/${device.id}/feeds/last.json`);
+                        const statusData = await statusRes.json();
+                        if (statusData === "-1") {
+                            offline++;
+                        } else {
+                            const diff = (new Date() - new Date(statusData.created_at)) / 1000 / 60;
+                            if (diff < 5) online++;
+                            else offline++;
+                        }
+                    } catch {
+                        offline++;
+                    }
+                }
+                
+                if(onlineEl) onlineEl.innerText = online;
+                if(offlineEl) offlineEl.innerText = offline;
+            } catch (e) {
+                console.error('Error updating stats:', e);
+            }
+        }
+
+        async function updateDataStatistics() {
+            const email = localStorage.getItem('eps_user_email');
+            if (!email) return;
+
+            try {
+                const res = await fetch(`/api/devices?email=${email}`);
+                const devices = await res.json();
+                
+                if (devices.length === 0) {
+                    // Set all stats to N/A if no devices
+                    ['ph', 'temp', 'turb'].forEach(type => {
+                        ['average', 'min', 'max', 'latest'].forEach(stat => {
+                            const el = document.getElementById(`${type}-${stat}`);
+                            if (el) el.innerText = 'N/A';
+                        });
+                    });
+                    return;
+                }
+
+                const phValues = [];
+                const tempValues = [];
+                const turbValues = [];
+                let latestPh = null, latestTemp = null, latestTurb = null;
+
+                // Fetch data from all devices
+                for (const device of devices) {
+                    try {
+                        const dataRes = await fetch(`https://api.thingspeak.com/channels/${device.id}/feeds.json?results=100`);
+                        const data = await dataRes.json();
+                        
+                        if (data.feeds && data.feeds.length > 0) {
+                            data.feeds.forEach(feed => {
+                                if (feed.field1) {
+                                    const val = parseFloat(feed.field1);
+                                    if (!isNaN(val)) {
+                                        phValues.push(val);
+                                        if (!latestPh || new Date(feed.created_at) > new Date(latestPh.created_at)) {
+                                            latestPh = { value: val, created_at: feed.created_at };
+                                        }
+                                    }
+                                }
+                                if (feed.field2) {
+                                    const val = parseFloat(feed.field2);
+                                    if (!isNaN(val)) {
+                                        tempValues.push(val);
+                                        if (!latestTemp || new Date(feed.created_at) > new Date(latestTemp.created_at)) {
+                                            latestTemp = { value: val, created_at: feed.created_at };
+                                        }
+                                    }
+                                }
+                                if (feed.field3) {
+                                    const val = parseFloat(feed.field3);
+                                    if (!isNaN(val)) {
+                                        turbValues.push(val);
+                                        if (!latestTurb || new Date(feed.created_at) > new Date(latestTurb.created_at)) {
+                                            latestTurb = { value: val, created_at: feed.created_at };
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    } catch (e) {
+                        console.error(`Error fetching data for device ${device.id}:`, e);
+                    }
+                }
+
+                // Calculate and display pH statistics
+                if (phValues.length > 0) {
+                    const avg = phValues.reduce((a, b) => a + b, 0) / phValues.length;
+                    const min = Math.min(...phValues);
+                    const max = Math.max(...phValues);
+                    
+                    document.getElementById('ph-average').innerText = avg.toFixed(2);
+                    document.getElementById('ph-min').innerText = min.toFixed(2);
+                    document.getElementById('ph-max').innerText = max.toFixed(2);
+                    document.getElementById('ph-latest').innerText = latestPh ? latestPh.value.toFixed(2) : '--';
+                } else {
+                    ['average', 'min', 'max', 'latest'].forEach(stat => {
+                        const el = document.getElementById(`ph-${stat}`);
+                        if (el) el.innerText = 'N/A';
+                    });
+                }
+
+                // Calculate and display Temperature statistics
+                if (tempValues.length > 0) {
+                    const avg = tempValues.reduce((a, b) => a + b, 0) / tempValues.length;
+                    const min = Math.min(...tempValues);
+                    const max = Math.max(...tempValues);
+                    
+                    document.getElementById('temp-average').innerText = avg.toFixed(1) + '°C';
+                    document.getElementById('temp-min').innerText = min.toFixed(1) + '°C';
+                    document.getElementById('temp-max').innerText = max.toFixed(1) + '°C';
+                    document.getElementById('temp-latest').innerText = latestTemp ? latestTemp.value.toFixed(1) + '°C' : '--';
+                } else {
+                    ['average', 'min', 'max', 'latest'].forEach(stat => {
+                        const el = document.getElementById(`temp-${stat}`);
+                        if (el) el.innerText = 'N/A';
+                    });
+                }
+
+                // Calculate and display Turbidity statistics
+                if (turbValues.length > 0) {
+                    const avg = turbValues.reduce((a, b) => a + b, 0) / turbValues.length;
+                    const min = Math.min(...turbValues);
+                    const max = Math.max(...turbValues);
+                    
+                    document.getElementById('turb-average').innerText = avg.toFixed(1) + ' NTU';
+                    document.getElementById('turb-min').innerText = min.toFixed(1) + ' NTU';
+                    document.getElementById('turb-max').innerText = max.toFixed(1) + ' NTU';
+                    document.getElementById('turb-latest').innerText = latestTurb ? latestTurb.value.toFixed(1) + ' NTU' : '--';
+                } else {
+                    ['average', 'min', 'max', 'latest'].forEach(stat => {
+                        const el = document.getElementById(`turb-${stat}`);
+                        if (el) el.innerText = 'N/A';
+                    });
+                }
+            } catch (e) {
+                console.error('Error updating data statistics:', e);
+            }
+        }
     </script>
 </body>
 </html>

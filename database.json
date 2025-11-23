@@ -5,7 +5,7 @@
       "password": "admin123",
       "name": "System Admin",
       "role": "admin",
-      "organization": "EPS HQ"
+      "organization": "Basis"
     },
     {
       "email": "user@eps.com",
@@ -18,7 +18,7 @@
       "email": "shingchoyip@gmail.com",
       "password": "123456",
       "name": "Joey Yip",
-      "role": "user",
+      "role": "admin",
       "organization": ""
     }
   ],

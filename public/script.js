@@ -409,6 +409,89 @@ async function checkCardStatus(id) {
     } catch (e) { container.innerHTML = `<span class="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span> Error`; }
 }
 
+// Device Page - Load Device Data
+async function loadDeviceData(deviceId, deviceName) {
+    // Update page header
+    const pageName = document.getElementById('page-device-name');
+    const pageId = document.getElementById('page-device-id');
+    const breadcrumbName = document.getElementById('breadcrumb-name');
+    
+    if (pageName) pageName.innerText = deviceName || 'Device';
+    if (pageId) pageId.innerText = `ID: ${deviceId}`;
+    if (breadcrumbName) breadcrumbName.innerText = deviceName || 'Device';
+    
+    // Update document title
+    document.title = `${deviceName || 'Device'} - ChitoNet`;
+    
+    // Load charts using ThingSpeak iframes
+    const phContainer = document.getElementById('container-ph');
+    const tempContainer = document.getElementById('container-temp');
+    const turbContainer = document.getElementById('container-turbidity');
+    
+    if (phContainer) {
+        phContainer.innerHTML = `<iframe src="https://thingspeak.com/channels/${deviceId}/charts/1?bgcolor=%23ffffff&color=%2315803d&dynamic=true&results=60&type=line&update=15&width=auto&height=auto&linewidth=2" style="width:100%;height:100%;border:none;"></iframe>`;
+    }
+    
+    if (tempContainer) {
+        tempContainer.innerHTML = `<iframe src="https://thingspeak.com/channels/${deviceId}/charts/2?bgcolor=%23ffffff&color=%23b91c1c&dynamic=true&results=60&type=line&update=15&width=auto&height=auto&linewidth=2" style="width:100%;height:100%;border:none;"></iframe>`;
+    }
+    
+    if (turbContainer) {
+        turbContainer.innerHTML = `<iframe src="https://thingspeak.com/channels/${deviceId}/charts/3?bgcolor=%23ffffff&color=%23ca8a04&dynamic=true&results=60&type=line&update=15&width=auto&height=auto&linewidth=2" style="width:100%;height:100%;border:none;"></iframe>`;
+    }
+    
+    // Check device status
+    checkDeviceStatus(deviceId);
+    
+    // Update status periodically
+    setInterval(() => checkDeviceStatus(deviceId), 30000); // Check every 30 seconds
+}
+
+async function checkDeviceStatus(deviceId) {
+    const statusDot = document.getElementById('status-dot');
+    const statusPing = document.getElementById('status-ping');
+    const statusText = document.getElementById('status-text');
+    
+    if (!statusDot || !statusText) return;
+    
+    try {
+        const response = await fetch(`https://api.thingspeak.com/channels/${deviceId}/feeds/last.json`);
+        const data = await response.json();
+        
+        if (data === "-1" || !data.created_at) {
+            // Device never seen or invalid
+            statusDot.className = "relative inline-flex rounded-full h-3 w-3 bg-gray-500";
+            statusPing.classList.remove('bg-green-400');
+            statusPing.classList.add('bg-gray-400');
+            statusText.innerText = "Offline";
+            statusText.className = "text-sm font-bold text-gray-500";
+        } else {
+            const diff = (new Date() - new Date(data.created_at)) / 1000 / 60; // minutes
+            if (diff < 5) {
+                // Online
+                statusDot.className = "relative inline-flex rounded-full h-3 w-3 bg-green-500";
+                statusPing.classList.remove('bg-gray-400');
+                statusPing.classList.add('bg-green-400');
+                statusText.innerText = "Online";
+                statusText.className = "text-sm font-bold text-green-600";
+            } else {
+                // Offline
+                statusDot.className = "relative inline-flex rounded-full h-3 w-3 bg-red-500";
+                statusPing.classList.remove('bg-green-400');
+                statusPing.classList.add('bg-red-400');
+                statusText.innerText = "Offline";
+                statusText.className = "text-sm font-bold text-red-600";
+            }
+        }
+    } catch (e) {
+        statusDot.className = "relative inline-flex rounded-full h-3 w-3 bg-yellow-500";
+        statusPing.classList.remove('bg-green-400', 'bg-red-400', 'bg-gray-400');
+        statusPing.classList.add('bg-yellow-400');
+        statusText.innerText = "Error";
+        statusText.className = "text-sm font-bold text-yellow-600";
+    }
+}
+
 async function handleAddDevice(event) {
     event.preventDefault();
     const name = document.getElementById('new-device-name').value;
