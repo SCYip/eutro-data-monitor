@@ -18,27 +18,7 @@
 <body class="bg-gray-100 text-gray-800 flex flex-col min-h-screen">
     
     <!-- Navigation -->
-    <nav class="bg-white shadow-md border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="flex justify-between items-center h-20">
-                <a href="index.html" class="flex items-center">
-                    <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl mr-3 shadow-lg">EPS</div>
-                    <span class="text-xl font-bold text-gray-900 tracking-tight hidden md:block">Eutrophication Prevention System</span>
-                </a>
-                <div class="hidden md:flex space-x-6 items-center">
-                    <a href="index.html" class="nav-link py-2 font-medium text-gray-500 hover:text-blue-600">Home</a>
-                    <a href="about.html" class="nav-link py-2 font-medium text-gray-500 hover:text-blue-600">About</a>
-                    <a href="team.html" class="nav-link py-2 font-medium text-gray-500 hover:text-blue-600">Team</a>
-                    <a href="hardware.html" class="nav-link py-2 font-medium text-gray-500 hover:text-blue-600">Hardware</a>
-                    <a href="monitor.html" class="text-blue-600 font-bold flex items-center mr-4 border-b-2 border-blue-600 pb-1">
-                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></span>Live Monitor
-                    </a>
-                    <a href="login.html" id="nav-btn-login" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-full font-medium shadow-md">Login</a>
-                    <a href="dashboard.html" id="nav-btn-dashboard" class="hidden bg-gray-800 hover:bg-gray-900 text-white px-5 py-2 rounded-full font-medium shadow-md">Dashboard</a>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <div id="navbar-placeholder"></div>
 
     <!-- Monitor Header -->
     <div class="bg-white border-b border-gray-200 px-6 py-8">
@@ -111,6 +91,7 @@
         </div>
     </div>
 
+    <script src="navbar.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

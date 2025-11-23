@@ -1,0 +1,20 @@
+﻿<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Network Nodes (Green) -->
+    <g transform="translate(0, -20)">
+        <circle cx="256" cy="100" r="28" fill="#65a30d"/>
+        <circle cx="180" cy="200" r="28" fill="#65a30d"/>
+        <circle cx="330" cy="180" r="28" fill="#65a30d"/>
+        <!-- Connecting Links - Thicker Stroke (16px) -->
+        <path d="M256 100 L180 200" stroke="#65a30d" stroke-width="16" stroke-linecap="round"/>
+        <path d="M180 200 L330 180" stroke="#65a30d" stroke-width="16" stroke-linecap="round"/>
+        <path d="M256 100 L330 180" stroke="#65a30d" stroke-width="16" stroke-linecap="round"/>
+    </g>
+
+    <!-- Waves - Control points adjusted for thicker mid-sections -->
+    <!-- Wave 1: Green -->
+    <path d="M50 260 C 160 170, 350 350, 462 260 C 350 390, 160 210, 50 260 Z" fill="#65a30d"/>
+    <!-- Wave 2: Cyan -->
+    <path d="M50 340 C 160 250, 350 430, 462 340 C 350 470, 160 290, 50 340 Z" fill="#0ea5e9"/>
+    <!-- Wave 3: Deep Blue -->
+    <path d="M50 420 C 160 330, 350 510, 462 420 C 350 550, 160 370, 50 420 Z" fill="#1e40af"/>
+</svg>
