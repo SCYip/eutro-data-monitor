@@ -1,0 +1,32 @@
+{
+  "users": [
+    {
+      "email": "admin@eps.com",
+      "password": "admin123",
+      "name": "System Admin",
+      "role": "admin",
+      "organization": "EPS HQ"
+    },
+    {
+      "email": "user@eps.com",
+      "password": "user123",
+      "name": "John Doe",
+      "role": "user",
+      "organization": ""
+    },
+    {
+      "email": "shingchoyip@gmail.com",
+      "password": "123456",
+      "name": "Joey Yip",
+      "role": "user",
+      "organization": ""
+    }
+  ],
+  "devices": [
+    {
+      "id": "3175602",
+      "name": "Main System",
+      "owner": "admin@eps.com"
+    }
+  ]
+}
