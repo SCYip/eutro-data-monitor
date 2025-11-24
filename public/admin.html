@@ -190,12 +190,7 @@
 
     <script src="script.js"></script>
     <script>
-        // Use the same API helper function from script.js
-        const getApiUrl = (path) => {
-            const API_BASE_URL = window.API_BASE_URL || '';
-            const cleanPath = path.startsWith('/') ? path.substring(1) : path;
-            return API_BASE_URL ? `${API_BASE_URL}/${cleanPath}` : `/${cleanPath}`;
-        };
+        // getApiUrl is already defined in script.js, no need to redeclare
         
         let pendingAction = null;
 
@@ -261,7 +256,7 @@
 
         async function changeUserRole(email, newRole) {
             try {
-                const res = await fetch(`/api/admin/users/${email}/role`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ role: newRole }) });
+                const res = await fetch(getApiUrl(`/api/admin/users/${email}/role`), { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ role: newRole }) });
                 const data = await res.json();
                 showNotification(data.success ? "Role updated" : data.message, data.success ? "success" : "error");
                 if(data.success) loadAdminData();
@@ -270,7 +265,7 @@
 
         async function deleteUser(email) {
             try {
-                const res = await fetch(`/api/admin/users/${email}`, { method: 'DELETE' });
+                const res = await fetch(getApiUrl(`/api/admin/users/${email}`), { method: 'DELETE' });
                 const data = await res.json();
                 showNotification(data.success ? "User deleted" : data.message, data.success ? "success" : "error");
                 if(data.success) loadAdminData();
@@ -283,18 +278,37 @@
         function toggleAdminAddDevice() { const m = document.getElementById('admin-add-device-modal'); if(m) m.classList.toggle('hidden'); }
         async function handleAdminAddDevice(event) {
             event.preventDefault();
-            // ... (Logic same as previous step) ...
-            // Re-implementing to ensure it works with new modal structure
             const name = document.getElementById('admin-new-device-name').value;
             const id = document.getElementById('admin-new-device-id').value;
-            let owner = document.getElementById('admin-new-device-owner').value || "Unassigned";
+            const ownerInput = document.getElementById('admin-new-device-owner').value.trim();
+            const owner = ownerInput || null; // Send null for unassigned devices
+            
+            if (!name || !id) {
+                showNotification("Device name and ID are required", "error");
+                return;
+            }
             
             try {
-                const res = await fetch(getApiUrl('/api/admin/devices'), { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id, name, owner }) });
+                const res = await fetch(getApiUrl('/api/admin/devices'), { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({ id, name, owner }) 
+                });
                 const data = await res.json();
-                if(data.success) { showNotification(data.message || "Device created", "success"); toggleAdminAddDevice(); loadAdminData(); }
-                else showNotification(data.message, "error");
-            } catch(e) { showNotification("Error: " + e.message, "error"); }
+                if(data.success) { 
+                    showNotification(data.message || "Device created", "success"); 
+                    toggleAdminAddDevice(); 
+                    // Clear form
+                    document.getElementById('admin-new-device-name').value = '';
+                    document.getElementById('admin-new-device-id').value = '';
+                    document.getElementById('admin-new-device-owner').value = '';
+                    loadAdminData(); 
+                } else {
+                    showNotification(data.message, "error");
+                }
+            } catch(e) { 
+                showNotification("Error: " + e.message, "error"); 
+            }
         }
 
         async function adminDeleteDevice(id, owner) {
