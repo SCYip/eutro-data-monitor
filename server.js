@@ -119,49 +119,71 @@ app.get("/api/devices", (req, res) => {
     if (!userEmail) return res.status(400).json({ error: "Email required" });
 
     const db = readDB();
-    const requester = db.users.find(u => u.email === userEmail);
     
-    if (requester && requester.role === 'admin') {
-        // Admins see all devices with ownership info
-        const devicesWithInfo = db.devices.map(device => {
-            const isOwner = device.owner === userEmail;
-            return {
-                ...device,
-                permission: isOwner ? 'owner' : 'admin-view',
-                isShared: !isOwner,
-                isAdminView: !isOwner // Flag to indicate admin is viewing but not owning
-            };
-        });
-        res.json(devicesWithInfo);
-    } else {
-        // Regular users see owned devices and shared devices
-        const ownedDevices = db.devices.filter(d => d.owner === userEmail);
-        const sharedDevices = db.devices.filter(d => {
-            if (d.owner === userEmail) return false; // Already in owned
-            if (!d.sharedWith || !Array.isArray(d.sharedWith)) return false;
-            return d.sharedWith.some(share => share.email === userEmail);
-        }).map(device => {
-            // Add permission info to shared devices
-            const shareInfo = device.sharedWith.find(share => share.email === userEmail);
-            return {
-                ...device,
-                permission: shareInfo ? shareInfo.permission : 'view',
-                isShared: true
-            };
-        });
-        
-        // Add ownership info to owned devices (include sharedWith for owners)
-        const ownedWithInfo = ownedDevices.map(device => ({
+    // All users (including admins) see only owned devices and shared devices
+    const ownedDevices = db.devices.filter(d => {
+        const isOwner = d.owner === userEmail;
+        console.log(`Device ${d.id} (${d.name}): owner=${d.owner}, requester=${userEmail}, isOwner=${isOwner}`);
+        return isOwner;
+    });
+    
+    const sharedDevices = db.devices.filter(d => {
+        if (d.owner === userEmail) return false; // Already in owned
+        if (!d.sharedWith || !Array.isArray(d.sharedWith)) return false;
+        const isShared = d.sharedWith.some(share => share.email === userEmail);
+        console.log(`Device ${d.id} (${d.name}): sharedWith=${JSON.stringify(d.sharedWith)}, requester=${userEmail}, isShared=${isShared}`);
+        return isShared;
+    }).map(device => {
+        // Add permission info to shared devices
+        const shareInfo = device.sharedWith.find(share => share.email === userEmail);
+        return {
             ...device,
-            permission: 'owner',
-            isShared: false,
-            sharedWith: device.sharedWith || [] // Include sharedWith for owners
-        }));
-        
-        res.json([...ownedWithInfo, ...sharedDevices]);
-    }
+            permission: shareInfo ? shareInfo.permission : 'view',
+            isShared: true
+        };
+    });
+    
+    // Add ownership info to owned devices (include sharedWith for owners)
+    const ownedWithInfo = ownedDevices.map(device => ({
+        ...device,
+        permission: 'owner',
+        isShared: false,
+        sharedWith: device.sharedWith || [] // Include sharedWith for owners
+    }));
+    
+    const result = [...ownedWithInfo, ...sharedDevices];
+    console.log(`Returning ${result.length} devices for ${userEmail}:`, result.map(d => ({id: d.id, name: d.name, owner: d.owner, permission: d.permission})));
+    
+    res.json(result);
 });
 
+// Admin-only endpoint for creating new devices (from admin panel)
+app.post("/api/admin/devices", (req, res) => {
+    const { id, name, owner } = req.body;
+    if (!id || !name) {
+        return res.status(400).json({ success: false, message: "Device ID and name are required." });
+    }
+
+    const db = readDB();
+    
+    // Check if device already exists
+    const existingDevice = db.devices.find(d => d.id === id);
+    if (existingDevice) {
+        // Update existing device
+        existingDevice.name = name;
+        if (owner) existingDevice.owner = owner;
+        writeDB(db);
+        return res.json({ success: true, message: "Device updated." });
+    }
+
+    // Create new device (owner can be empty/unassigned)
+    const deviceOwner = owner || "Unassigned";
+    db.devices.push({ id, name, owner: deviceOwner, sharedWith: [] });
+    writeDB(db); 
+    res.json({ success: true, message: "Device created successfully." });
+});
+
+// User endpoint for adding existing devices to their account (from dashboard)
 app.post("/api/devices", (req, res) => {
     const { id, name, owner } = req.body;
     if (!id || !name || !owner) {
@@ -170,23 +192,25 @@ app.post("/api/devices", (req, res) => {
 
     const db = readDB();
     
-    // Check if device already exists with any owner
+    // Check if device exists in the system (must be created by admin first)
     const existingDevice = db.devices.find(d => d.id === id);
-    if (existingDevice) {
-        if (existingDevice.owner === owner) {
-            return res.status(400).json({ success: false, message: "Device already added to your account." });
-        } else {
-            return res.status(403).json({ 
-                success: false, 
-                message: `This device is already owned by another account. Please contact the owner (${existingDevice.owner}) to request access.` 
-            });
-        }
+    if (!existingDevice) {
+        return res.status(403).json({ 
+            success: false, 
+            message: "This device has not been registered yet. Please contact an administrator to register the device in the admin control panel first." 
+        });
     }
 
-    // Initialize sharedWith array for new devices
-    db.devices.push({ id, name, owner, sharedWith: [] });
-    writeDB(db); 
-    res.json({ success: true, message: "Device added." });
+    // Device exists - check if user already owns it
+    if (existingDevice.owner === owner) {
+        return res.status(400).json({ success: false, message: "Device already added to your account." });
+    }
+
+    // Device exists but owned by someone else - user must request access via sharing
+    return res.status(403).json({ 
+        success: false, 
+        message: `This device is already owned by another account (${existingDevice.owner}). Please contact the owner to request access.` 
+    });
 });
 
 app.delete("/api/devices", (req, res) => {
@@ -215,12 +239,12 @@ app.delete("/api/devices", (req, res) => {
             const shareIndex = device.sharedWith.findIndex(share => share.email === requesterEmail);
             if (shareIndex !== -1) {
                 device.sharedWith.splice(shareIndex, 1);
-                writeDB(db);
+        writeDB(db); 
                 res.json({ success: true, message: "Device access removed." });
             } else {
                 res.status(403).json({ success: false, message: "You don't have permission to remove this device." });
             }
-        } else {
+    } else {
             res.status(403).json({ success: false, message: "You don't have permission to remove this device." });
         }
     }
@@ -351,11 +375,8 @@ app.post("/api/devices/transfer", (req, res) => {
         device.sharedWith = [];
     }
 
-    // Remove old owner from sharedWith if they're there
+    // Remove old owner from sharedWith completely (they lose all access)
     device.sharedWith = device.sharedWith.filter(share => share.email !== currentOwnerEmail);
-
-    // Add old owner to sharedWith with view permission (they become a viewer)
-    device.sharedWith.push({ email: currentOwnerEmail, permission: 'view' });
 
     // Transfer ownership
     device.owner = newOwnerEmail;
@@ -507,12 +528,15 @@ app.post("/api/notifications/:id/accept", (req, res) => {
             return res.status(403).json({ success: false, message: "Original owner no longer owns this device." });
         }
 
-        // Remove old owner from sharedWith if present
+        // Store the old owner email before transfer
+        const oldOwnerEmail = device.owner;
+
+        // Remove old owner from sharedWith completely (they lose all access)
+        // Remove both the fromEmail and the current owner to be safe
         if (!device.sharedWith) device.sharedWith = [];
-        device.sharedWith = device.sharedWith.filter(s => s.email !== notification.fromEmail);
-        
-        // Add old owner as viewer
-        device.sharedWith.push({ email: notification.fromEmail, permission: 'view' });
+        device.sharedWith = device.sharedWith.filter(s => 
+            s.email !== notification.fromEmail && s.email !== oldOwnerEmail
+        );
         
         // Transfer ownership
         device.owner = userEmail;

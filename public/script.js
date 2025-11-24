@@ -346,6 +346,27 @@ async function handleShareDevice(event) {
         return;
     }
 
+    // Check if user exists before proceeding
+    let userName = shareWithEmail;
+    let userExists = false;
+    try {
+        const usersRes = await fetch('/api/users');
+        const users = await usersRes.json();
+        const user = users.find(u => u.email === shareWithEmail);
+        if(user) {
+            userName = user.name;
+            userExists = true;
+        }
+    } catch(e) {
+        showNotification("Error checking user account. Please try again.", "error");
+        return;
+    }
+
+    if(!userExists) {
+        showNotification("User account not found. Please enter a valid registered email address.", "error");
+        return;
+    }
+
     try {
         // Send notification instead of directly sharing
         const res = await fetch('/api/notifications', {
@@ -466,14 +487,26 @@ async function handleTransferOwnership(event) {
         return;
     }
 
-    // Get user name for display
+    // Check if user exists before proceeding
     let userName = newOwnerEmail;
+    let userExists = false;
     try {
         const usersRes = await fetch('/api/users');
         const users = await usersRes.json();
         const user = users.find(u => u.email === newOwnerEmail);
-        if(user) userName = user.name;
-    } catch(e) {}
+        if(user) {
+            userName = user.name;
+            userExists = true;
+        }
+    } catch(e) {
+        showNotification("Error checking user account. Please try again.", "error");
+        return;
+    }
+
+    if(!userExists) {
+        showNotification("User account not found. Please enter a valid registered email address.", "error");
+        return;
+    }
 
     const confirmed = await showConfirmModal(
         "Send Transfer Request",
@@ -593,19 +626,12 @@ function createDeviceCard(device) {
     // Determine permission and ownership
     const permission = device.permission || 'owner';
     const isShared = device.isShared || false;
-    const isAdminView = device.isAdminView || false;
-    // Check if permission is admin-view (even if isAdminView flag is missing)
-    const isAdminViewPermission = permission === 'admin-view' || isAdminView;
-    // For admin-view devices, permission is 'admin-view', not 'owner'
-    const isOwner = permission === 'owner' && !isAdminViewPermission;
+    const isOwner = permission === 'owner';
     const canManage = isOwner || permission === 'manage';
     
-    // Permission badge - check admin-view first
+    // Permission badge
     let permissionBadge = '';
-    if (isAdminViewPermission) {
-        // Admin viewing device owned by someone else
-        permissionBadge = `<span class="px-2 py-1 text-xs font-bold rounded-full bg-yellow-100 text-yellow-700">Admin View</span>`;
-    } else if (isShared) {
+    if (isShared) {
         const badgeColor = permission === 'manage' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700';
         const badgeText = permission === 'manage' ? 'Manage' : 'View Only';
         permissionBadge = `<span class="px-2 py-1 text-xs font-bold rounded-full ${badgeColor}">${badgeText}</span>`;
@@ -613,11 +639,8 @@ function createDeviceCard(device) {
         permissionBadge = `<span class="px-2 py-1 text-xs font-bold rounded-full bg-green-100 text-green-700">Owner</span>`;
     }
     
-    // Show owner info for admin-view devices
+    // No owner info needed since users only see their own devices or shared devices
     let ownerInfo = '';
-    if (isAdminViewPermission && device.owner) {
-        ownerInfo = `<p class="text-xs text-gray-500 mt-1">Owner: ${device.owner}</p>`;
-    }
     
     card.innerHTML = `
         <div id="card-body-${device.id}" class="p-6 cursor-pointer flex-grow transition-opacity duration-300" onclick="window.location.href='device.html?id=${device.id}&name=${encodeURIComponent(device.name)}'">
@@ -637,15 +660,13 @@ function createDeviceCard(device) {
         <div class="bg-gray-50 border-t border-gray-100 px-4 py-3 flex items-center justify-between gap-3">
             <button id="btn-view-${device.id}" onclick="window.location.href='device.html?id=${device.id}&name=${encodeURIComponent(device.name)}'" class="flex-1 bg-white border border-gray-200 text-gray-700 hover:text-blue-600 hover:border-blue-300 text-xs font-bold py-2 rounded-lg transition shadow-sm">View</button>
             <div class="flex space-x-1 border-l border-gray-200 pl-2">
-                ${isOwner && !isAdminViewPermission ? `<button onclick="openShareModal('${device.id}', '${device.name}', event)" class="p-2 text-gray-400 hover:text-green-600 rounded-lg hover:bg-green-50 transition" title="Share Device">
+                ${isOwner ? `<button onclick="openShareModal('${device.id}', '${device.name}', event)" class="p-2 text-gray-400 hover:text-green-600 rounded-lg hover:bg-green-50 transition" title="Share Device">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
                 </button>` : ''}
-                ${canManage && !isAdminViewPermission ? `<button onclick="openRenameModal('${device.id}', '${device.name}', event)" class="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition" title="Rename">
+                ${canManage ? `<button onclick="openRenameModal('${device.id}', '${device.name}', event)" class="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition" title="Rename">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                 </button>` : ''}
-                ${isAdminViewPermission ? `<button onclick="deleteDevice('${device.id}', event)" class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition opacity-50 cursor-not-allowed" title="Delete Device (Admin - Only owner can delete)" disabled>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                </button>` : permission === 'view' && isShared ? `<button onclick="deleteDevice('${device.id}', event)" class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition" title="Remove My Access">
+                ${permission === 'view' && isShared ? `<button onclick="deleteDevice('${device.id}', event)" class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition" title="Remove My Access">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                 </button>` : `<button onclick="deleteDevice('${device.id}', event)" class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition" title="${isOwner ? 'Delete Device' : 'Remove Access'}">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
@@ -793,6 +814,9 @@ async function renderDeviceList() {
         const res = await fetch(`/api/devices?email=${email}`);
         const devices = await res.json();
 
+        // Debug: Log what devices are returned
+        console.log('Devices returned for', email, ':', devices.map(d => ({id: d.id, name: d.name, owner: d.owner, permission: d.permission, isShared: d.isShared})));
+
         // Cache devices for search
         cachedDevices = devices;
 
@@ -800,7 +824,7 @@ async function renderDeviceList() {
         listContainer.innerHTML = '';
 
         // Check if user has any owned devices (to determine if they can add devices)
-        const hasOwnedDevices = devices.some(d => d.permission === 'owner' || (!d.isShared && !d.isAdminView));
+        const hasOwnedDevices = devices.some(d => d.permission === 'owner' && !d.isShared);
         const canAddDevices = hasOwnedDevices || devices.length === 0; // Can add if they have owned devices or no devices yet
 
         // Hide/show Add Device FAB based on permissions
@@ -832,7 +856,6 @@ async function renderDeviceList() {
                 if (device.id === '3175602') {
                     console.log('Device 3175602 info:', {
                         permission: device.permission,
-                        isAdminView: device.isAdminView,
                         isShared: device.isShared,
                         owner: device.owner,
                         currentUser: email
@@ -864,12 +887,9 @@ async function renderProfileDeviceList() {
         devices.forEach(device => {
             const permission = device.permission || 'owner';
             const isShared = device.isShared || false;
-            const isAdminView = device.isAdminView || false;
             
             let permissionBadge = '';
-            if (isAdminView) {
-                permissionBadge = '<span class="px-2 py-1 text-xs font-bold text-yellow-700 bg-yellow-100 rounded-full">Admin View</span>';
-            } else if (isShared) {
+            if (isShared) {
                 permissionBadge = permission === 'manage' 
                     ? '<span class="px-2 py-1 text-xs font-bold text-purple-700 bg-purple-100 rounded-full">Manage</span>'
                     : '<span class="px-2 py-1 text-xs font-bold text-blue-700 bg-blue-100 rounded-full">View Only</span>';
@@ -880,11 +900,11 @@ async function renderProfileDeviceList() {
             const row = document.createElement('tr');
             row.className = "hover:bg-gray-50 transition";
             row.innerHTML = `
-                <td class="px-6 py-4 font-medium text-gray-900">${device.name}${isAdminView && device.owner ? `<br><span class="text-xs text-gray-500">Owner: ${device.owner}</span>` : ''}</td>
+                <td class="px-6 py-4 font-medium text-gray-900">${device.name}</td>
                 <td class="px-6 py-4 text-gray-500 font-mono text-xs">${device.id}</td>
                 <td class="px-6 py-4">${permissionBadge}</td>
                 <td class="px-6 py-4 text-right">
-                    <button onclick="deleteDevice('${device.id}', event)" class="text-red-500 hover:text-red-700 font-bold text-xs ${isAdminView ? 'opacity-50 cursor-not-allowed' : ''}" ${isAdminView ? 'disabled' : ''}>Remove</button>
+                    <button onclick="deleteDevice('${device.id}', event)" class="text-red-500 hover:text-red-700 font-bold text-xs">Remove</button>
                 </td>
             `;
             tbody.appendChild(row);
@@ -1021,31 +1041,17 @@ async function handleAddDevice(event) {
     const btn = document.querySelector('#add-device-modal button[type="submit"]');
 
     if (!name || !id) return;
-    
-    // Check if user can add devices (has owned devices or no devices)
-    try {
-        const devicesRes = await fetch(`/api/devices?email=${email}`);
-        const devices = await devicesRes.json();
-        const hasOwnedDevices = devices.some(d => d.permission === 'owner' || (!d.isShared && !d.isAdminView));
-        const canAddDevices = hasOwnedDevices || devices.length === 0;
-        
-        if (!canAddDevices) {
-            showNotification("You don't have permission to add devices. Only device owners can add new devices.", "error");
-            return;
-        }
-    } catch(e) {
-        showNotification("Error checking permissions", "error");
-        return;
-    }
 
     btn.innerText = "Validating..."; btn.disabled = true;
 
     try {
+        // Validate ThingSpeak channel exists
         const tsCheck = await fetch(`https://api.thingspeak.com/channels/${id}/feeds/last.json`);
         if (tsCheck.status === 404) throw new Error("Channel ID does not exist.");
         const tsData = await tsCheck.json();
         if (tsData === "-1") throw new Error("Channel ID is invalid or private.");
 
+        // Try to add device (must be registered in admin panel first)
         const res = await fetch('/api/devices', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -1053,13 +1059,17 @@ async function handleAddDevice(event) {
         });
         const data = await res.json();
         if (data.success) {
-            showNotification("Device added", "success");
+            showNotification("Device added to your account", "success");
             toggleAddDeviceModal();
             renderDeviceList();
             document.getElementById('new-device-name').value = '';
             document.getElementById('new-device-id').value = '';
-        } else { showNotification(data.message, "error"); }
-    } catch (error) { showNotification("Error: " + error.message, "error"); } 
+        } else { 
+            showNotification(data.message, "error"); 
+        }
+    } catch (error) { 
+        showNotification("Error: " + error.message, "error"); 
+    } 
     finally { btn.innerText = "Add Device"; btn.disabled = false; }
 }
 

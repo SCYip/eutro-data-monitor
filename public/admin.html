@@ -13,7 +13,7 @@
         <div class="flex items-center gap-6">
             <a href="index.html" class="flex items-center group">
                 <img src="logo1.svg" alt="ChitoNet Logo" class="h-8 w-auto object-contain mr-3 transition-transform group-hover:scale-105">
-                <div class="font-bold text-lg tracking-wide group-hover:text-blue-300 transition">ChitoNet</div>
+                <div class="font-bold text-lg tracking-wide group-hover:text-blue-300 transition">Chito<span class="text-green-500">Net</span></div>
             </a>
             
             <!-- Back to Website Link -->
@@ -238,11 +238,11 @@
             let owner = document.getElementById('admin-new-device-owner').value || "Unassigned";
             
             try {
-                const res = await fetch('/api/devices', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id, name, owner }) });
+                const res = await fetch('/api/admin/devices', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id, name, owner }) });
                 const data = await res.json();
-                if(data.success) { showNotification("Device added", "success"); toggleAdminAddDevice(); loadAdminData(); }
+                if(data.success) { showNotification(data.message || "Device created", "success"); toggleAdminAddDevice(); loadAdminData(); }
                 else showNotification(data.message, "error");
-            } catch(e) { showNotification("Error", "error"); }
+            } catch(e) { showNotification("Error: " + e.message, "error"); }
         }
 
         async function adminDeleteDevice(id, owner) {
