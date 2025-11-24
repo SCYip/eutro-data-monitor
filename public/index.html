@@ -328,6 +328,11 @@
         </div>
     </div>
 
+    <script>
+        // Set API base URL from Netlify environment variable (if set)
+        // This allows the backend URL to be configured in Netlify dashboard
+        window.API_BASE_URL = window.API_BASE_URL || '';
+    </script>
     <script src="navbar.js"></script>
     <script src="script.js"></script>
 </body>

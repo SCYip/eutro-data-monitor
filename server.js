@@ -1,11 +1,22 @@
 ﻿const express = require("express");
 const bodyParser = require("body-parser");
+const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
 const app = express();
-const PORT = 3000;
 
-app.use(bodyParser.json());
+// Use PORT from environment variable (for deployment) or default to 3000
+const PORT = process.env.PORT || 3000;
+
+// Enable CORS for all routes (needed when frontend and backend are on different domains)
+app.use(cors({
+    origin: '*', // In production, replace with your Netlify domain for better security
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static(path.join(__dirname, "public")));
 
 // --- JSON DATABASE SETUP ---
