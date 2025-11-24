@@ -20,19 +20,7 @@
       "organization": ""
     }
   ],
-  "devices": [
-    {
-      "id": "3175602",
-      "name": "Main System",
-      "owner": "admin@eps.com",
-      "sharedWith": [
-        {
-          "email": "user@eps.com",
-          "permission": "view"
-        }
-      ]
-    }
-  ],
+  "devices": [],
   "notifications": [
     {
       "id": "1763918274944",

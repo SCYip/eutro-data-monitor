@@ -12,7 +12,7 @@
     <nav class="bg-gray-900 text-white px-6 py-4 flex justify-between items-center shadow-lg sticky top-0 z-50">
         <div class="flex items-center gap-6">
             <a href="index.html" class="flex items-center group">
-                <img src="logo.svg" alt="ChitoNet Logo" class="h-8 w-auto object-contain mr-3 transition-transform group-hover:scale-105">
+                <img src="logo1.svg" alt="ChitoNet Logo" class="h-8 w-auto object-contain mr-3 transition-transform group-hover:scale-105">
                 <div class="font-bold text-lg tracking-wide group-hover:text-blue-300 transition">ChitoNet</div>
             </a>
             
@@ -247,10 +247,23 @@
 
         async function adminDeleteDevice(id, owner) {
             try {
-                await fetch('/api/devices', { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id, owner }) });
-                showNotification("Device deleted", "success");
-                loadAdminData();
-            } catch(e) { showNotification("Error", "error"); }
+                const adminEmail = localStorage.getItem('eps_user_email');
+                const res = await fetch('/api/devices', { 
+                    method: 'DELETE', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({ id, requesterEmail: adminEmail }) 
+                });
+                const data = await res.json();
+                if(data.success) {
+                    showNotification(data.message || "Device deleted", "success");
+                    loadAdminData();
+                } else {
+                    showNotification(data.message || "Failed to delete device", "error");
+                }
+            } catch(e) {
+                console.error('Delete error:', e);
+                showNotification("Error deleting device: " + e.message, "error");
+            }
         }
 
         async function checkAdminDeviceStatus(id) {
