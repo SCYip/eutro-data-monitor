@@ -226,9 +226,9 @@
                     <p class="text-sm text-gray-500">Manage and monitor your sensor devices</p>
                 </div>
                 <div class="max-w-md w-full sm:w-auto">
-                    <div class="relative group">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg class="w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         </div>
                         <input type="text" id="device-search" placeholder="Search devices..." class="block w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm hover:shadow">
                     </div>
@@ -391,6 +391,20 @@
             if(userNameEl) {
                 const name = localStorage.getItem('eps_user_name') || 'User';
                 userNameEl.innerText = name;
+            }
+            
+            // Setup search functionality
+            const searchInput = document.getElementById('device-search');
+            if(searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    filterDevices(e.target.value);
+                });
+                searchInput.addEventListener('keyup', (e) => {
+                    if(e.key === 'Escape') {
+                        e.target.value = '';
+                        filterDevices('');
+                    }
+                });
             }
             
             renderDeviceList();

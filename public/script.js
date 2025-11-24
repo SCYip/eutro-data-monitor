@@ -542,18 +542,35 @@ function deleteDevice(id, event) {
 }
 
 // -- Filter --
-function filterDevices(query) {
+// Store devices for filtering
+let cachedDevices = [];
+
+async function filterDevices(query) {
     const listContainer = document.getElementById('device-list');
-    const allDevices = getStoredDevices();
     
-    if (!query) {
+    if (!query || query.trim() === '') {
         renderDeviceList();
         return;
     }
 
-    const filtered = allDevices.filter(d => 
-        d.name.toLowerCase().includes(query.toLowerCase()) || 
-        d.id.includes(query)
+    // If no cached devices, fetch them
+    if (cachedDevices.length === 0) {
+        const email = localStorage.getItem('eps_user_email');
+        if (!email) return;
+        
+        try {
+            const res = await fetch(`/api/devices?email=${email}`);
+            cachedDevices = await res.json();
+        } catch(e) {
+            console.error('Error fetching devices for search:', e);
+            return;
+        }
+    }
+
+    const searchQuery = query.toLowerCase().trim();
+    const filtered = cachedDevices.filter(d => 
+        d.name.toLowerCase().includes(searchQuery) || 
+        d.id.toString().includes(searchQuery)
     );
 
     listContainer.innerHTML = '';
@@ -775,6 +792,9 @@ async function renderDeviceList() {
     try {
         const res = await fetch(`/api/devices?email=${email}`);
         const devices = await res.json();
+
+        // Cache devices for search
+        cachedDevices = devices;
 
         if(statTotal) statTotal.innerText = devices.length;
         listContainer.innerHTML = '';
