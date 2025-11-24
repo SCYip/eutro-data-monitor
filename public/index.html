@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eutrophication Prevention System</title>
+    <title>ChitoNet - Eutrophication Prevention System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
     <style>
@@ -14,6 +14,9 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-slate-800 flex flex-col min-h-screen">
@@ -22,107 +25,305 @@
     <div id="navbar-placeholder"></div>
 
     <!-- Hero Section -->
-    <div class="relative bg-slate-900 overflow-hidden">
+    <div class="relative overflow-hidden" style="background-image: url('./homepageBackground.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat; min-height: 600px;">
+        <!-- Background Overlays -->
+        <div class="absolute inset-0 z-0">
+            <div class="absolute inset-0 bg-gradient-to-br from-blue-900/70 via-blue-800/65 to-green-900/70"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900/50 via-transparent to-transparent"></div>
+        </div>
+        
+        <!-- Animated gradient orbs -->
         <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full z-0 pointer-events-none">
-            <div class="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-600/20 rounded-full blur-3xl mix-blend-screen opacity-30 animate-pulse"></div>
-            <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-3xl mix-blend-screen opacity-20"></div>
+            <div class="absolute top-0 right-0 w-[800px] h-[800px] bg-white/5 rounded-full blur-3xl opacity-40 animate-pulse"></div>
+            <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-cyan-300/10 rounded-full blur-3xl opacity-30"></div>
+            <div class="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-green-300/10 rounded-full blur-3xl opacity-25"></div>
         </div>
 
-        <div class="relative z-10 max-w-7xl mx-auto px-6 py-24 lg:py-32 flex flex-col lg:flex-row items-center gap-16">
-            <div class="lg:w-1/2 text-center lg:text-left">
-                <div class="inline-flex items-center px-4 py-2 rounded-full bg-blue-900/50 border border-blue-700/50 text-blue-200 text-sm font-bold mb-8 backdrop-blur-sm">
-                    <span class="flex h-2 w-2 rounded-full bg-blue-400 mr-2"></span>
-                    IoT Water Quality Monitoring v1.0
+        <div class="relative z-10 max-w-7xl mx-auto px-6 py-24 lg:py-32" style="min-height: 600px;">
+            <div class="text-center max-w-4xl mx-auto w-full">
+                <div class="inline-flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white text-sm font-bold mb-8 shadow-lg">
+                    <span class="flex h-2 w-2 rounded-full bg-green-300 mr-2 animate-pulse"></span>
+                    IoT Water Quality Monitoring Network
                 </div>
-                <h1 class="text-5xl lg:text-7xl font-extrabold text-white leading-tight mb-6 tracking-tight">
-                    Protecting Our <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">Ecosystems</span>
+                <h1 class="text-5xl lg:text-7xl font-extrabold text-white leading-tight mb-6 tracking-tight drop-shadow-lg">
+                    Chito<span class="text-green-300">Net</span>
                 </h1>
-                <p class="text-lg text-slate-300 mb-10 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-                    An advanced early warning system designed to detect eutrophication before it starts. Real-time tracking of pH, Temperature, and Turbidity.
+                <p class="text-xl text-blue-50 mb-4 leading-relaxed font-semibold">
+                    Advanced Eutrophication Detection & Prevention System
                 </p>
-                <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <p class="text-lg text-blue-100 mb-10 leading-relaxed">
+                    A network of intelligent buoys monitoring water quality across large aquatic areas. Real-time detection of eutrophication signs using pH, turbidity, and temperature sensors, with chitosan-based prevention capabilities.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="monitor.html" class="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-600/30 transition-all transform hover:-translate-y-1 flex items-center justify-center">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                         View Live Data
+                    </a>
+                    <a href="about.html" class="px-8 py-4 bg-slate-800/50 hover:bg-slate-800 text-white border border-slate-700 hover:border-slate-600 rounded-xl font-bold backdrop-blur-sm transition-all transform hover:-translate-y-1 flex items-center justify-center">
+                        Learn More
                     </a>
                     <a href="hardware.html" class="px-8 py-4 bg-slate-800/50 hover:bg-slate-800 text-white border border-slate-700 hover:border-slate-600 rounded-xl font-bold backdrop-blur-sm transition-all transform hover:-translate-y-1 flex items-center justify-center">
                         System Hardware
                     </a>
                 </div>
             </div>
-
-            <div class="lg:w-1/2 relative">
-                <div class="glass-panel rounded-2xl p-6 lg:p-10 relative z-10 transform rotate-2 hover:rotate-0 transition-all duration-500">
-                    <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
-                        <div>
-                            <div class="text-slate-400 text-xs uppercase font-bold tracking-wider">Status</div>
-                            <div class="text-green-400 font-bold flex items-center mt-1"><span class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span> Online</div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-slate-400 text-xs uppercase font-bold tracking-wider">Location</div>
-                            <div class="text-white font-bold mt-1">Sector 4-A</div>
-                        </div>
-                    </div>
-                    <div class="space-y-4">
-                        <div class="bg-slate-800/50 rounded-lg p-4 border border-slate-700 flex justify-between items-center">
-                            <div class="flex items-center text-white"><span class="w-3 h-3 bg-green-500 rounded-full mr-3"></span>pH Level</div>
-                            <span class="text-white font-mono">7.4</span>
-                        </div>
-                        <div class="bg-slate-800/50 rounded-lg p-4 border border-slate-700 flex justify-between items-center">
-                            <div class="flex items-center text-white"><span class="w-3 h-3 bg-red-500 rounded-full mr-3"></span>Temperature</div>
-                            <span class="text-white font-mono">24.5°C</span>
-                        </div>
-                        <div class="bg-slate-800/50 rounded-lg p-4 border border-slate-700 flex justify-between items-center">
-                            <div class="flex items-center text-white"><span class="w-3 h-3 bg-yellow-500 rounded-full mr-3"></span>Turbidity</div>
-                            <span class="text-white font-mono">12 NTU</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="absolute top-4 -right-4 w-full h-full border-2 border-blue-500/30 rounded-2xl -z-10"></div>
-            </div>
         </div>
         
         <div class="border-t border-slate-800 bg-slate-900/50 backdrop-blur-sm">
             <div class="max-w-7xl mx-auto px-6 py-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-                <div><div class="text-3xl font-bold text-white">3</div><div class="text-xs text-slate-400 uppercase font-bold tracking-wider mt-1">Active Sensors</div></div>
+                <div><div class="text-3xl font-bold text-white">3</div><div class="text-xs text-slate-400 uppercase font-bold tracking-wider mt-1">Sensor Types</div></div>
                 <div><div class="text-3xl font-bold text-white">24/7</div><div class="text-xs text-slate-400 uppercase font-bold tracking-wider mt-1">Monitoring</div></div>
-                <div><div class="text-3xl font-bold text-white">15s</div><div class="text-xs text-slate-400 uppercase font-bold tracking-wider mt-1">Update Rate</div></div>
-                <div><div class="text-3xl font-bold text-white">100%</div><div class="text-xs text-slate-400 uppercase font-bold tracking-wider mt-1">Uptime</div></div>
+                <div><div class="text-3xl font-bold text-white">Real-time</div><div class="text-xs text-slate-400 uppercase font-bold tracking-wider mt-1">Data Updates</div></div>
+                <div><div class="text-3xl font-bold text-white">Network</div><div class="text-xs text-slate-400 uppercase font-bold tracking-wider mt-1">Buoy System</div></div>
             </div>
         </div>
     </div>
 
-    <!-- Features & How It Works (Condensed for brevity, keep existing content) -->
+    <!-- How It Works Section -->
     <div class="py-24 bg-white relative">
         <div class="max-w-7xl mx-auto px-6 lg:px-8">
             <div class="text-center max-w-3xl mx-auto mb-16">
-                <h2 class="text-blue-600 font-bold text-sm uppercase tracking-widest mb-3">System Capabilities</h2>
-                <h3 class="text-4xl font-extrabold text-slate-900 mb-4">Complete Water Analysis</h3>
-                <p class="text-lg text-slate-500">Our hardware suite provides comprehensive data points to ensure a holistic view of water health.</p>
+                <h2 class="text-blue-600 font-bold text-sm uppercase tracking-widest mb-3">System Overview</h2>
+                <h3 class="text-4xl font-extrabold text-slate-900 mb-4">How Chito<span class="text-green-500">Net</span> Works</h3>
+                <p class="text-lg text-slate-500">A distributed network of smart buoys working together to monitor and protect aquatic ecosystems.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+                <div class="group p-8 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border border-blue-200 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
+                    <div class="w-16 h-16 bg-blue-600 text-white rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    </div>
+                    <h4 class="text-xl font-bold text-slate-900 mb-3">1. Deploy Buoys</h4>
+                    <p class="text-slate-600 leading-relaxed">Smart buoys equipped with Arduino Uno R4 WiFi are strategically placed across large water areas, forming a monitoring network.</p>
+                </div>
+
+                <div class="group p-8 bg-gradient-to-br from-green-50 to-green-100 rounded-2xl border border-green-200 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
+                    <div class="w-16 h-16 bg-green-600 text-white rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    </div>
+                    <h4 class="text-xl font-bold text-slate-900 mb-3">2. Continuous Monitoring</h4>
+                    <p class="text-slate-600 leading-relaxed">Each buoy continuously measures pH levels, water temperature, and turbidity, detecting early signs of eutrophication.</p>
+                </div>
+
+                <div class="group p-8 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl border border-yellow-200 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
+                    <div class="w-16 h-16 bg-yellow-600 text-white rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    </div>
+                    <h4 class="text-xl font-bold text-slate-900 mb-3">3. Early Detection</h4>
+                    <p class="text-slate-600 leading-relaxed">Real-time data analysis identifies potential algal blooms and nutrient imbalances before they become critical.</p>
+                </div>
+
+                <div class="group p-8 bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl border border-purple-200 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
+                    <div class="w-16 h-16 bg-purple-600 text-white rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <h4 class="text-xl font-bold text-slate-900 mb-3">4. Chitosan Treatment</h4>
+                    <p class="text-slate-600 leading-relaxed">When threats are detected, chitosan mixture can be deployed to prevent eutrophication and maintain water quality.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sensor Features Section -->
+    <div class="py-24 bg-gradient-to-br from-slate-50 to-blue-50 relative">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-blue-600 font-bold text-sm uppercase tracking-widest mb-3">Technology</h2>
+                <h3 class="text-4xl font-extrabold text-slate-900 mb-4">Advanced Sensor Array</h3>
+                <p class="text-lg text-slate-500">Three critical sensors working in harmony to provide comprehensive water quality assessment.</p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="group p-8 bg-white rounded-2xl border border-gray-100 shadow-xl shadow-gray-200/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all hover:-translate-y-1">
+                <div class="group p-8 bg-white rounded-2xl border border-gray-100 shadow-xl shadow-gray-200/50 hover:shadow-2xl hover:shadow-green-500/10 transition-all hover:-translate-y-1">
                     <div class="w-14 h-14 bg-green-100 text-green-600 rounded-xl flex items-center justify-center mb-6 group-hover:bg-green-600 group-hover:text-white transition-colors">
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                     </div>
-                    <h4 class="text-xl font-bold text-slate-900 mb-3">pH Monitoring</h4>
-                    <p class="text-slate-500 leading-relaxed">Real-time acidity detection. Critical for spotting chemical runoff or biological imbalances immediately.</p>
+                    <h4 class="text-xl font-bold text-slate-900 mb-3">pH Sensor</h4>
+                    <p class="text-slate-500 leading-relaxed mb-4">Measures acidity and alkalinity levels in real-time. Critical for detecting chemical imbalances that can lead to eutrophication. Monitors pH range from 0-14 with high precision.</p>
+                    <div class="text-sm text-slate-400 font-semibold">Why it matters: Algal blooms often cause pH fluctuations</div>
                 </div>
-                <!-- Card 2 & 3 omitted for brevity, they remain the same -->
-                 <div class="group p-8 bg-white rounded-2xl border border-gray-100 shadow-xl shadow-gray-200/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all hover:-translate-y-1">
+                <div class="group p-8 bg-white rounded-2xl border border-gray-100 shadow-xl shadow-gray-200/50 hover:shadow-2xl hover:shadow-red-500/10 transition-all hover:-translate-y-1">
                     <div class="w-14 h-14 bg-red-100 text-red-600 rounded-xl flex items-center justify-center mb-6 group-hover:bg-red-600 group-hover:text-white transition-colors">
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     </div>
-                    <h4 class="text-xl font-bold text-slate-900 mb-3">Thermal Analysis</h4>
-                    <p class="text-slate-500 leading-relaxed">High-precision DS18B20 sensors track temperature variances that facilitate algal bloom growth.</p>
+                    <h4 class="text-xl font-bold text-slate-900 mb-3">Temperature Sensor</h4>
+                    <p class="text-slate-500 leading-relaxed mb-4">DS18B20 waterproof sensors track water temperature with ±0.5°C accuracy. Temperature changes can accelerate algal growth and indicate thermal pollution.</p>
+                    <div class="text-sm text-slate-400 font-semibold">Why it matters: Warmer water promotes faster nutrient absorption</div>
                 </div>
-                <div class="group p-8 bg-white rounded-2xl border border-gray-100 shadow-xl shadow-gray-200/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all hover:-translate-y-1">
+                <div class="group p-8 bg-white rounded-2xl border border-gray-100 shadow-xl shadow-gray-200/50 hover:shadow-2xl hover:shadow-yellow-500/10 transition-all hover:-translate-y-1">
                     <div class="w-14 h-14 bg-yellow-100 text-yellow-600 rounded-xl flex items-center justify-center mb-6 group-hover:bg-yellow-600 group-hover:text-white transition-colors">
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     </div>
-                    <h4 class="text-xl font-bold text-slate-900 mb-3">Turbidity Sensing</h4>
-                    <p class="text-slate-500 leading-relaxed">Optical measurement of suspended particles. The key indicator for water clarity and quality.</p>
+                    <h4 class="text-xl font-bold text-slate-900 mb-3">Turbidity Sensor</h4>
+                    <p class="text-slate-500 leading-relaxed mb-4">Optical sensors measure suspended particles and water clarity in NTU (Nephelometric Turbidity Units). High turbidity indicates sediment, algae, or organic matter presence.</p>
+                    <div class="text-sm text-slate-400 font-semibold">Why it matters: Direct indicator of water quality degradation</div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Network Architecture Section -->
+    <div class="py-24 bg-white relative">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-blue-600 font-bold text-sm uppercase tracking-widest mb-3">Network Architecture</h2>
+                    <h3 class="text-4xl font-extrabold text-slate-900 mb-6">Distributed Buoy Network</h3>
+                    <p class="text-lg text-slate-600 mb-6 leading-relaxed">
+                        Chito<span class="text-green-500">Net</span> operates as a distributed network of intelligent buoys, strategically positioned across large water bodies like a monitoring net. Each buoy operates independently while contributing to a comprehensive view of water quality across different areas.
+                    </p>
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-4 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                            <div class="w-10 h-10 bg-blue-600 text-white rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 mb-1">Arduino Uno R4 WiFi</h4>
+                                <p class="text-slate-600 text-sm">Each buoy is powered by Arduino Uno R4 WiFi, enabling wireless data transmission and remote monitoring capabilities.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4 p-4 bg-green-50 rounded-xl border border-green-100">
+                            <div class="w-10 h-10 bg-green-600 text-white rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 mb-1">Area Coverage</h4>
+                                <p class="text-slate-600 text-sm">Buoys are deployed across large areas, providing spatial data about water quality variations in different zones.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4 p-4 bg-purple-50 rounded-xl border border-purple-100">
+                            <div class="w-10 h-10 bg-purple-600 text-white rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 mb-1">Real-time Data</h4>
+                                <p class="text-slate-600 text-sm">Continuous monitoring with instant data transmission allows for immediate response to changing conditions.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative">
+                    <div class="bg-gradient-to-br from-blue-100 to-green-100 rounded-2xl p-8 border-2 border-blue-200 shadow-2xl">
+                        <div class="bg-white rounded-xl p-6 shadow-lg">
+                            <h4 class="text-xl font-bold text-slate-900 mb-4 text-center">Network Visualization</h4>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="bg-blue-50 rounded-lg p-4 border border-blue-200 text-center">
+                                    <div class="w-12 h-12 bg-blue-600 rounded-full mx-auto mb-2 flex items-center justify-center">
+                                        <span class="text-white font-bold">1</span>
+                                    </div>
+                                    <p class="text-xs text-slate-600 font-semibold">Buoy</p>
+                                </div>
+                                <div class="bg-green-50 rounded-lg p-4 border border-green-200 text-center">
+                                    <div class="w-12 h-12 bg-green-600 rounded-full mx-auto mb-2 flex items-center justify-center">
+                                        <span class="text-white font-bold">2</span>
+                                    </div>
+                                    <p class="text-xs text-slate-600 font-semibold">Buoy</p>
+                                </div>
+                                <div class="bg-purple-50 rounded-lg p-4 border border-purple-200 text-center">
+                                    <div class="w-12 h-12 bg-purple-600 rounded-full mx-auto mb-2 flex items-center justify-center">
+                                        <span class="text-white font-bold">3</span>
+                                    </div>
+                                    <p class="text-xs text-slate-600 font-semibold">Buoy</p>
+                                </div>
+                                <div class="bg-yellow-50 rounded-lg p-4 border border-yellow-200 text-center">
+                                    <div class="w-12 h-12 bg-yellow-600 rounded-full mx-auto mb-2 flex items-center justify-center">
+                                        <span class="text-white font-bold">4</span>
+                                    </div>
+                                    <p class="text-xs text-slate-600 font-semibold">Buoy</p>
+                                </div>
+                                <div class="bg-red-50 rounded-lg p-4 border border-red-200 text-center">
+                                    <div class="w-12 h-12 bg-red-600 rounded-full mx-auto mb-2 flex items-center justify-center">
+                                        <span class="text-white font-bold">5</span>
+                                    </div>
+                                    <p class="text-xs text-slate-600 font-semibold">Buoy</p>
+                                </div>
+                                <div class="bg-cyan-50 rounded-lg p-4 border border-cyan-200 text-center">
+                                    <div class="w-12 h-12 bg-cyan-600 rounded-full mx-auto mb-2 flex items-center justify-center">
+                                        <span class="text-white font-bold">6</span>
+                                    </div>
+                                    <p class="text-xs text-slate-600 font-semibold">Buoy</p>
+                                </div>
+                            </div>
+                            <p class="text-center text-sm text-slate-500 mt-4">Multiple buoys forming a monitoring network</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chitosan Prevention Section -->
+    <div class="py-24 bg-gradient-to-br from-green-50 to-blue-50 relative">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <h2 class="text-green-600 font-bold text-sm uppercase tracking-widest mb-3">Prevention Technology</h2>
+                <h3 class="text-4xl font-extrabold text-slate-900 mb-4">Chitosan-Based Eutrophication Prevention</h3>
+                <p class="text-lg text-slate-500">When early warning signs are detected, Chito<span class="text-green-500">Net</span> enables proactive intervention using chitosan mixtures.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                <div class="bg-white rounded-2xl p-8 shadow-xl border border-green-100">
+                    <div class="w-16 h-16 bg-green-100 text-green-600 rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <h4 class="text-2xl font-bold text-slate-900 mb-4">How Chitosan Works</h4>
+                    <p class="text-slate-600 leading-relaxed mb-4">
+                        Chitosan, derived from chitin, is an eco-friendly biopolymer that effectively binds with excess nutrients (particularly phosphorus) in water. When deployed as a mixture, it prevents these nutrients from being available to algae, thus stopping eutrophication before it starts.
+                    </p>
+                    <ul class="space-y-2 text-slate-600">
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-600 font-bold">✓</span>
+                            <span>Biodegradable and environmentally safe</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-600 font-bold">✓</span>
+                            <span>Targets excess phosphorus and nitrogen</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-600 font-bold">✓</span>
+                            <span>Prevents algal bloom formation</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white rounded-2xl p-8 shadow-xl border border-blue-100">
+                    <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+                    <h4 class="text-2xl font-bold text-slate-900 mb-4">Automated Response</h4>
+                    <p class="text-slate-600 leading-relaxed mb-4">
+                        When sensors detect parameters indicating potential eutrophication (e.g., rising pH, increasing turbidity, temperature spikes), the system can trigger chitosan mixture deployment in the affected area, providing immediate preventive action.
+                    </p>
+                    <ul class="space-y-2 text-slate-600">
+                        <li class="flex items-start gap-2">
+                            <span class="text-blue-600 font-bold">→</span>
+                            <span>Real-time threat detection</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-blue-600 font-bold">→</span>
+                            <span>Targeted area treatment</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-blue-600 font-bold">→</span>
+                            <span>Continuous monitoring post-treatment</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="py-20 bg-gradient-to-r from-blue-600 to-green-600 text-white">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h2 class="text-4xl font-extrabold mb-4">Ready to Monitor Your Water Quality?</h2>
+            <p class="text-xl text-blue-100 mb-8">Join Chito<span class="text-green-300">Net</span> and start protecting aquatic ecosystems today.</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="signup.html" class="px-8 py-4 bg-white text-blue-600 rounded-xl font-bold shadow-lg hover:bg-blue-50 transition-all transform hover:-translate-y-1">
+                    Get Started
+                </a>
+                <a href="dashboard.html" class="px-8 py-4 bg-blue-700/50 hover:bg-blue-700 text-white border-2 border-white/30 rounded-xl font-bold backdrop-blur-sm transition-all transform hover:-translate-y-1">
+                    View Dashboard
+                </a>
             </div>
         </div>
     </div>

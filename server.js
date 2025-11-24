@@ -171,7 +171,8 @@ app.post("/api/admin/devices", (req, res) => {
     if (existingDevice) {
         // Update existing device
         existingDevice.name = name;
-        if (owner) existingDevice.owner = owner;
+        // Allow setting owner to null (unassigned) or to a new owner
+        existingDevice.owner = owner || null;
         writeDB(db);
         return res.json({ success: true, message: "Device updated." });
     }

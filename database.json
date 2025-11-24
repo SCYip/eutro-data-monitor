@@ -18,13 +18,27 @@
       "name": "user",
       "role": "user",
       "organization": ""
+    },
+    {
+      "email": "rickyZong@basis.com",
+      "password": "ricky123",
+      "name": "Ricky Zong",
+      "role": "user",
+      "organization": ""
+    },
+    {
+      "email": "eddyZhang@basis.com",
+      "password": "eddy123",
+      "name": "Eddy Zhang",
+      "role": "admin",
+      "organization": ""
     }
   ],
   "devices": [
     {
       "id": "3175602",
       "name": "test",
-      "owner": "user@eps.com",
+      "owner": "eddyZhang@basis.com",
       "sharedWith": []
     }
   ],
@@ -100,6 +114,18 @@
       "status": "accepted",
       "createdAt": "2025-11-24T03:08:53.428Z",
       "respondedAt": "2025-11-24T03:09:04.174Z"
+    },
+    {
+      "id": "1763958331068",
+      "type": "transfer",
+      "fromEmail": "rickyZong@basis.com",
+      "toEmail": "eddyZhang@basis.com",
+      "deviceId": "3175602",
+      "deviceName": "test",
+      "permission": "view",
+      "status": "accepted",
+      "createdAt": "2025-11-24T04:25:31.070Z",
+      "respondedAt": "2025-11-24T04:25:44.054Z"
     }
   ]
 }

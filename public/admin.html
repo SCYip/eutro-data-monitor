@@ -143,6 +143,36 @@
         </div>
     </div>
 
+    <!-- Change Owner Modal -->
+    <div id="change-owner-modal" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-8 w-full max-w-md shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-white">Change Device Owner</h2>
+                <button onclick="closeChangeOwnerModal()" class="text-slate-400 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            </div>
+            <form onsubmit="handleChangeOwner(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-400 mb-1">Device</label>
+                    <input type="text" id="change-owner-device-name" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white" readonly>
+                    <input type="hidden" id="change-owner-device-id">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-400 mb-1">Current Owner</label>
+                    <input type="text" id="change-owner-current-owner" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-slate-400" readonly>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-400 mb-1">New Owner Email</label>
+                    <input type="email" id="change-owner-new-owner" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-blue-500 outline-none" placeholder="Enter email or leave empty for unassigned">
+                    <p class="text-xs text-slate-500 mt-1">Leave empty to unassign the device</p>
+                </div>
+                <div class="flex space-x-3 mt-6">
+                    <button type="button" onclick="closeChangeOwnerModal()" class="flex-1 bg-slate-700 text-white py-2.5 rounded-lg font-bold hover:bg-slate-600 transition">Cancel</button>
+                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition">Update Owner</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Generic Confirmation Modal -->
     <div id="confirm-action-modal" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50 backdrop-blur-sm">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-8 w-full max-w-sm shadow-2xl text-center">
@@ -200,9 +230,24 @@
                     return `<tr class="hover:bg-slate-700/50 transition border-b border-slate-800"><td class="px-6 py-4 font-medium text-white">${u.name} <span class="text-xs text-slate-500 uppercase ml-2">${u.role}</span></td><td class="px-6 py-4 text-slate-400">${u.email}</td><td class="px-6 py-4 text-right">${roleBtn}<button onclick="openConfirmModal('Delete User', 'Delete ${u.email}?', () => deleteUser('${u.email}'))" class="text-xs font-bold text-red-400 border border-red-900 bg-red-900/20 px-3 py-1 rounded">Delete</button></td></tr>`;
                 }).join('');
 
-                document.getElementById('admin-device-list').innerHTML = data.devices.map(d => `
-                    <tr class="hover:bg-slate-700/50 transition"><td class="px-6 py-4 font-medium text-white">${d.name}</td><td class="px-6 py-4 font-mono text-slate-400">${d.id}</td><td class="px-6 py-4 text-slate-400">${d.owner}</td><td class="px-6 py-4" id="admin-status-${d.id}"><span class="text-slate-500 text-xs">...</span></td><td class="px-6 py-4 text-right"><button onclick="openConfirmModal('Delete Device', 'Remove ${d.name}?', () => adminDeleteDevice('${d.id}', '${d.owner}'))" class="text-slate-400 hover:text-red-400">🗑️</button></td></tr>
-                `).join('');
+                document.getElementById('admin-device-list').innerHTML = data.devices.map(d => {
+                    const ownerDisplay = (d.owner && d.owner !== "Unassigned" && d.owner !== "null") ? d.owner : '<span class="text-slate-500 italic">Unassigned</span>';
+                    const ownerValue = (d.owner && d.owner !== "Unassigned" && d.owner !== "null") ? d.owner : '';
+                    return `
+                    <tr class="hover:bg-slate-700/50 transition">
+                        <td class="px-6 py-4 font-medium text-white">${d.name}</td>
+                        <td class="px-6 py-4 font-mono text-slate-400">${d.id}</td>
+                        <td class="px-6 py-4 text-slate-400">${ownerDisplay}</td>
+                        <td class="px-6 py-4" id="admin-status-${d.id}"><span class="text-slate-500 text-xs">...</span></td>
+                        <td class="px-6 py-4 text-right">
+                            <button onclick="openChangeOwnerModal('${d.id}', '${d.name}', '${ownerValue}')" class="text-blue-400 hover:text-blue-300 mr-3" title="Change Owner">
+                                <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            </button>
+                            <button onclick="openConfirmModal('Delete Device', 'Remove ${d.name}?', () => adminDeleteDevice('${d.id}', '${ownerValue}'))" class="text-slate-400 hover:text-red-400" title="Delete Device">🗑️</button>
+                        </td>
+                    </tr>
+                    `;
+                }).join('');
                 data.devices.forEach(d => checkAdminDeviceStatus(d.id));
             } catch (e) { console.error(e); }
         }
@@ -277,6 +322,60 @@
                 if (diff < 5) el.innerHTML = '<span class="text-green-400 font-bold text-xs">● Online</span>';
                 else el.innerHTML = '<span class="text-red-400 text-xs">● Offline</span>';
             } catch { el.innerHTML = '<span class="text-yellow-500 text-xs">Error</span>'; }
+        }
+
+        function openChangeOwnerModal(deviceId, deviceName, currentOwner) {
+            document.getElementById('change-owner-device-id').value = deviceId;
+            document.getElementById('change-owner-device-name').value = deviceName;
+            const ownerDisplay = (currentOwner && currentOwner !== "Unassigned" && currentOwner !== "null") ? currentOwner : "Unassigned";
+            document.getElementById('change-owner-current-owner').value = ownerDisplay;
+            document.getElementById('change-owner-new-owner').value = '';
+            document.getElementById('change-owner-modal').classList.remove('hidden');
+        }
+
+        function closeChangeOwnerModal() {
+            document.getElementById('change-owner-modal').classList.add('hidden');
+        }
+
+        async function handleChangeOwner(event) {
+            event.preventDefault();
+            const deviceId = document.getElementById('change-owner-device-id').value;
+            const deviceName = document.getElementById('change-owner-device-name').value;
+            const newOwner = document.getElementById('change-owner-new-owner').value.trim();
+            
+            try {
+                // First, get the current device to preserve the name
+                const adminRes = await fetch('/api/admin/data');
+                const adminData = await adminRes.json();
+                const device = adminData.devices.find(d => d.id === deviceId);
+                
+                if (!device) {
+                    showNotification("Device not found", "error");
+                    return;
+                }
+
+                // Update device with new owner (empty string means unassigned)
+                const res = await fetch('/api/admin/devices', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ 
+                        id: deviceId, 
+                        name: device.name, 
+                        owner: newOwner || null 
+                    })
+                });
+                
+                const data = await res.json();
+                if (data.success) {
+                    showNotification(newOwner ? `Device owner updated to ${newOwner}` : "Device unassigned", "success");
+                    closeChangeOwnerModal();
+                    loadAdminData();
+                } else {
+                    showNotification(data.message || "Failed to update owner", "error");
+                }
+            } catch (e) {
+                showNotification("Error: " + e.message, "error");
+            }
         }
     </script>
 </body>
