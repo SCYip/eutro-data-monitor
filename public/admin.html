@@ -190,6 +190,13 @@
 
     <script src="script.js"></script>
     <script>
+        // Use the same API helper function from script.js
+        const getApiUrl = (path) => {
+            const API_BASE_URL = window.API_BASE_URL || '';
+            const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+            return API_BASE_URL ? `${API_BASE_URL}/${cleanPath}` : `/${cleanPath}`;
+        };
+        
         let pendingAction = null;
 
         function openConfirmModal(title, message, actionCallback) {
@@ -216,7 +223,7 @@
 
         async function loadAdminData() {
             try {
-                const res = await fetch('/api/admin/data');
+                const res = await fetch(getApiUrl('/api/admin/data'));
                 const data = await res.json();
                 document.getElementById('admin-total-users').innerText = data.totalUsers;
                 document.getElementById('admin-total-devices').innerText = data.totalDevices;
@@ -283,7 +290,7 @@
             let owner = document.getElementById('admin-new-device-owner').value || "Unassigned";
             
             try {
-                const res = await fetch('/api/admin/devices', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id, name, owner }) });
+                const res = await fetch(getApiUrl('/api/admin/devices'), { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id, name, owner }) });
                 const data = await res.json();
                 if(data.success) { showNotification(data.message || "Device created", "success"); toggleAdminAddDevice(); loadAdminData(); }
                 else showNotification(data.message, "error");
@@ -293,7 +300,7 @@
         async function adminDeleteDevice(id, owner) {
             try {
                 const adminEmail = localStorage.getItem('eps_user_email');
-                const res = await fetch('/api/devices', { 
+                const res = await fetch(getApiUrl('/api/devices'), { 
                     method: 'DELETE', 
                     headers: {'Content-Type': 'application/json'}, 
                     body: JSON.stringify({ id, requesterEmail: adminEmail }) 
@@ -345,7 +352,7 @@
             
             try {
                 // First, get the current device to preserve the name
-                const adminRes = await fetch('/api/admin/data');
+                const adminRes = await fetch(getApiUrl('/api/admin/data'));
                 const adminData = await adminRes.json();
                 const device = adminData.devices.find(d => d.id === deviceId);
                 
@@ -355,7 +362,7 @@
                 }
 
                 // Update device with new owner (empty string means unassigned)
-                const res = await fetch('/api/admin/devices', {
+                const res = await fetch(getApiUrl('/api/admin/devices'), {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ 

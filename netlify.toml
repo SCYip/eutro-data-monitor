@@ -2,6 +2,15 @@
   publish = "public"
   command = ""
 
+# Proxy API requests to your backend server
+# Replace YOUR_BACKEND_URL with your actual backend URL (e.g., https://your-app.railway.app)
+[[redirects]]
+  from = "/api/*"
+  to = "https://YOUR_BACKEND_URL/api/:splat"
+  status = 200
+  force = true
+
+# SPA routing - all other routes go to index.html
 [[redirects]]
   from = "/*"
   to = "/index.html"

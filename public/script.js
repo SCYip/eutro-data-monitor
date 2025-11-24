@@ -11,6 +11,17 @@ function updateClock() {
 setInterval(updateClock, 1000);
 
 // --- NOTIFICATION SYSTEM (Toasts) ---
+// API Base URL - Set this to your backend server URL
+// For local development, leave empty. For production, set to your backend URL (e.g., 'https://your-backend.railway.app')
+const API_BASE_URL = window.API_BASE_URL || '';
+
+// Helper function to get full API URL
+function getApiUrl(path) {
+    // Remove leading slash if present to avoid double slashes
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    return API_BASE_URL ? `${API_BASE_URL}/${cleanPath}` : `/${cleanPath}`;
+}
+
 function showNotification(message, type = 'info') {
     let container = document.getElementById('toast-container');
     if (!container) {
@@ -39,7 +50,7 @@ async function loadUserProfile() {
 
     // 2. Fetch FRESH data from server (Fixes blank fields)
     try {
-        const res = await fetch(`/api/user?email=${email}`);
+        const res = await fetch(getApiUrl(`/api/user?email=${email}`));
         const data = await res.json();
         if (data.success) {
             // Update LocalStorage with fresh data
@@ -111,7 +122,7 @@ async function handleUpdateProfile(event) {
     
     if(newName && newName.trim() !== "") {
         try {
-            const res = await fetch('/api/profile', {
+            const res = await fetch(getApiUrl('/api/profile'), {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ email, newName, newOrg })
@@ -291,7 +302,7 @@ async function loadSharedUsers(deviceId) {
         }
 
         // Fetch user names
-        const allUsersRes = await fetch('/api/users');
+        const allUsersRes = await fetch(getApiUrl('/api/users'));
         const allUsers = await allUsersRes.json();
         
         sharedList.innerHTML = '';
@@ -350,7 +361,7 @@ async function handleShareDevice(event) {
     let userName = shareWithEmail;
     let userExists = false;
     try {
-        const usersRes = await fetch('/api/users');
+        const usersRes = await fetch(getApiUrl('/api/users'));
         const users = await usersRes.json();
         const user = users.find(u => u.email === shareWithEmail);
         if(user) {
@@ -369,7 +380,7 @@ async function handleShareDevice(event) {
 
     try {
         // Send notification instead of directly sharing
-        const res = await fetch('/api/notifications', {
+        const res = await fetch(getApiUrl('/api/notifications'), {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
@@ -443,7 +454,7 @@ async function removeSharedAccess(email, event) {
     const ownerEmail = localStorage.getItem('eps_user_email');
     
     try {
-        const res = await fetch('/api/devices/share', {
+        const res = await fetch(getApiUrl('/api/devices/share'), {
             method: 'DELETE',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
@@ -491,7 +502,7 @@ async function handleTransferOwnership(event) {
     let userName = newOwnerEmail;
     let userExists = false;
     try {
-        const usersRes = await fetch('/api/users');
+        const usersRes = await fetch(getApiUrl('/api/users'));
         const users = await usersRes.json();
         const user = users.find(u => u.email === newOwnerEmail);
         if(user) {
@@ -519,7 +530,7 @@ async function handleTransferOwnership(event) {
 
     try {
         // Send notification instead of directly transferring
-        const res = await fetch('/api/notifications', {
+        const res = await fetch(getApiUrl('/api/notifications'), {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
@@ -548,7 +559,7 @@ async function confirmDelete() {
     if(deviceIdToDelete) {
         const email = localStorage.getItem('eps_user_email');
         // Remove from server
-        const res = await fetch('/api/devices', { 
+        const res = await fetch(getApiUrl('/api/devices'), { 
             method: 'DELETE', 
             headers: {'Content-Type': 'application/json'}, 
             body: JSON.stringify({ id: deviceIdToDelete, requesterEmail: email }) 
@@ -711,7 +722,7 @@ async function loadNotifications() {
         // Fetch all users once for name resolution
         let users = [];
         try {
-            const usersRes = await fetch('/api/users');
+            const usersRes = await fetch(getApiUrl('/api/users'));
             users = await usersRes.json();
         } catch(e) {
             console.warn('Could not load user names:', e);
@@ -1052,7 +1063,7 @@ async function handleAddDevice(event) {
         if (tsData === "-1") throw new Error("Channel ID is invalid or private.");
 
         // Try to add device (must be registered in admin panel first)
-        const res = await fetch('/api/devices', {
+        const res = await fetch(getApiUrl('/api/devices'), {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ id, name, owner: email })
@@ -1084,7 +1095,7 @@ async function handleLogin(event) {
 
     btn.innerText = "Verifying...";
     try {
-        const res = await fetch('/api/login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email, password}) });
+        const res = await fetch(getApiUrl('/api/login'), { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email, password}) });
         const data = await res.json();
         if(data.success) {
             localStorage.setItem('eps_user_logged_in', 'true');
@@ -1110,7 +1121,7 @@ async function handleSignup(event) {
 
     btn.innerText = "Creating Account...";
     try {
-        const res = await fetch('/api/signup', {
+        const res = await fetch(getApiUrl('/api/signup'), {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ name, email, password, organization: org })
