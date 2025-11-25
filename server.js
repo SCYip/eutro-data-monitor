@@ -71,7 +71,7 @@ app.post("/api/signup", (req, res) => {
     }
 
     const orgValue = organization ? organization : "";
-    db.users.push({ email, password, name, role: "user", organization: orgValue });
+    db.users.push({ email, password, name, role: "user", organization: orgValue, avatar: null });
     writeDB(db); 
 
     res.json({ success: true, message: "Account created successfully!" });
@@ -586,13 +586,33 @@ app.post("/api/notifications/:id/reject", (req, res) => {
 // --- ADMIN ROUTES ---
 
 app.get("/api/admin/data", (req, res) => {
-    const db = readDB();
-    res.json({
-        users: db.users.map(u => ({ name: u.name, email: u.email, role: u.role, organization: u.organization })), 
-        devices: db.devices,
-        totalDevices: db.devices.length,
-        totalUsers: db.users.filter(u => u.role !== 'admin').length
-    });
+    try {
+        const db = readDB();
+        // Return all users (including admins) for the admin panel
+        const allUsers = db.users.map(u => ({ 
+            name: u.name || 'Unknown', 
+            email: u.email, 
+            role: u.role || 'user', 
+            organization: u.organization || '' 
+        }));
+        
+        res.json({
+            users: allUsers, 
+            devices: db.devices || [],
+            totalDevices: (db.devices || []).length,
+            totalUsers: db.users.filter(u => u.role !== 'admin').length
+        });
+    } catch (error) {
+        console.error('Error loading admin data:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error loading admin data',
+            users: [],
+            devices: [],
+            totalDevices: 0,
+            totalUsers: 0
+        });
+    }
 });
 
 app.delete("/api/admin/users/:email", (req, res) => {
